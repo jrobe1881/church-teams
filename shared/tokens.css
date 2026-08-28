@@ -1,0 +1,156 @@
+/* /builder/tokens.css — Modern minimalist design system for the unified Builder.
+   Neutral palette, single burgundy accent, editorial typography.
+   Loaded standalone (independent of hub-modern.css so the Builder has its own identity). */
+
+:root{
+  /* Neutrals — cool minimalist gray scale (no warm tint) */
+  --n0:#ffffff;
+  --n50:#fafafa;
+  --n100:#f4f4f5;
+  --n150:#ececee;
+  --n200:#e4e4e7;
+  --n300:#d4d4d8;
+  --n400:#a1a1aa;
+  --n500:#71717a;
+  --n600:#52525b;
+  --n700:#3f3f46;
+  --n800:#27272a;
+  --n900:#18181b;
+
+  /* Single accent — burgundy (drawn from the wider hub identity, but muted) */
+  --accent:#7a1f2b;
+  --accent-hover:#661820;
+  --accent-soft:#f4e6e8;
+  --accent-tint:rgba(122,31,43,.08);
+
+  /* Semantic surfaces (light mode) */
+  --bg:var(--n50);
+  --surface:var(--n0);
+  --surface-2:var(--n100);
+  --surface-3:var(--n150);
+  --border:var(--n200);
+  --border-strong:var(--n300);
+  --ink:var(--n800);
+  --ink-2:var(--n600);
+  --ink-3:var(--n500);
+  --ink-muted:var(--n400);
+
+  /* State */
+  --focus:0 0 0 3px rgba(122,31,43,.15);
+  --shadow-1:0 1px 2px rgba(20,19,16,.04),0 1px 1px rgba(20,19,16,.02);
+  --shadow-2:0 4px 12px rgba(20,19,16,.06),0 2px 4px rgba(20,19,16,.04);
+  --shadow-3:0 12px 32px rgba(20,19,16,.10),0 4px 12px rgba(20,19,16,.06);
+
+  /* Radii */
+  --r-xs:4px;
+  --r-sm:6px;
+  --r-md:8px;
+  --r-lg:12px;
+  --r-xl:16px;
+  --r-pill:999px;
+
+  /* Type scale */
+  --font-sans:'Inter','Helvetica Neue',system-ui,-apple-system,sans-serif;
+  --font-serif:'Iowan Old Style','Palatino','Georgia',serif;   /* body copy */
+  --font-scripture:'EB Garamond','Iowan Old Style','Georgia',serif;
+  --font-mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+
+  --t-xs:.72rem;   /* 11.5px */
+  --t-sm:.82rem;   /* 13px */
+  --t-md:.93rem;   /* 15px */
+  --t-lg:1.05rem;  /* 17px */
+  --t-xl:1.22rem;  /* 19.5px */
+  --t-2xl:1.5rem;
+  --t-3xl:1.85rem;
+
+  /* Spacing scale (4px grid) */
+  --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-8:32px;--s-10:40px;--s-12:48px;--s-16:64px;
+
+  /* Motion */
+  --ease:cubic-bezier(.2,.7,.3,1);
+  --ease-out:cubic-bezier(0,.6,.2,1);
+  --dur-1:120ms;
+  --dur-2:200ms;
+  --dur-3:320ms;
+}
+
+body.theme-dark,
+html[data-theme-early="dark"],
+html[data-theme-early="dark"] body{
+  /* True inky black background so the reader feels like a proper night mode. Cool neutral (no warm brown tint). */
+  --bg:#050505;
+  --surface:#141414;
+  --surface-2:#1c1c1c;
+  --surface-3:#242424;
+  --border:#2a2a2a;
+  --border-strong:#3a3a3a;
+  --ink:#ededed;
+  --ink-2:#a1a1aa;
+  --ink-3:#71717a;
+  --ink-muted:#52525b;
+  /* Wave 3b: recalibrated dark-mode burgundy. Previous #c94a5c drifted
+     coral. #a83243 preserves the burgundy identity of light-mode #7a1f2b
+     while staying readable on a black surface (WCAG AA on --ink). */
+  --accent:#a83243;
+  --accent-hover:#c04355;
+  --accent-soft:rgba(168,50,67,.15);
+  --accent-tint:rgba(168,50,67,.12);
+  --shadow-1:0 1px 2px rgba(0,0,0,.45);
+  --shadow-2:0 4px 12px rgba(0,0,0,.55);
+  --shadow-3:0 12px 32px rgba(0,0,0,.65);
+  --focus:0 0 0 3px rgba(168,50,67,.30);
+}
+/* Anti-FOUC: paint html+body dark IMMEDIATELY when the inline head script
+   set data-theme-early="dark", before tokens.css finishes loading or theme.js
+   adds body.theme-dark. Prevents a light flash between page navigations. */
+html[data-theme-early="dark"]{background:#050505;color-scheme:dark}
+html[data-theme-early="dark"] body{background:#050505;color:#f2ede2}
+html[data-theme-early="light"]{background:#fafafa;color-scheme:light}
+
+/* ── Accent FOUC overrides ──────────────────────────────────────────────────
+   The inline head FOUC script writes data-accent="<id>" on <html> before
+   first paint, so these rules fire before accent.js even executes.
+   Each preset provides light and dark pairs. Burgundy is the default in :root
+   so only the non-default presets need rules here. */
+
+/* Sapphire */
+html[data-accent="sapphire"]{--accent:#1a4fa3;--accent-hover:#153e82;--accent-tint:rgba(26,79,163,.08);--accent-soft:#e3eaf8;--focus:0 0 0 3px rgba(26,79,163,.15)}
+html[data-accent="sapphire"][data-theme-early="dark"]{--accent:#4a82d4;--accent-hover:#6398e0;--accent-tint:rgba(74,130,212,.12);--accent-soft:rgba(74,130,212,.15);--focus:0 0 0 3px rgba(74,130,212,.30)}
+/* Forest */
+html[data-accent="forest"]{--accent:#1e6b3a;--accent-hover:#18572f;--accent-tint:rgba(30,107,58,.08);--accent-soft:#e2f0e7;--focus:0 0 0 3px rgba(30,107,58,.15)}
+html[data-accent="forest"][data-theme-early="dark"]{--accent:#3fa862;--accent-hover:#55bf78;--accent-tint:rgba(63,168,98,.12);--accent-soft:rgba(63,168,98,.15);--focus:0 0 0 3px rgba(63,168,98,.30)}
+/* Amber */
+html[data-accent="amber"]{--accent:#96620a;--accent-hover:#7c5008;--accent-tint:rgba(150,98,10,.08);--accent-soft:#fdf0dc;--focus:0 0 0 3px rgba(150,98,10,.15)}
+html[data-accent="amber"][data-theme-early="dark"]{--accent:#d4922a;--accent-hover:#e0a844;--accent-tint:rgba(212,146,42,.12);--accent-soft:rgba(212,146,42,.15);--focus:0 0 0 3px rgba(212,146,42,.30)}
+/* Slate */
+html[data-accent="slate"]{--accent:#3b5268;--accent-hover:#2f4254;--accent-tint:rgba(59,82,104,.08);--accent-soft:#e4eaef;--focus:0 0 0 3px rgba(59,82,104,.15)}
+html[data-accent="slate"][data-theme-early="dark"]{--accent:#7aa0c0;--accent-hover:#90b4d0;--accent-tint:rgba(122,160,192,.12);--accent-soft:rgba(122,160,192,.15);--focus:0 0 0 3px rgba(122,160,192,.30)}
+/* Rose */
+html[data-accent="rose"]{--accent:#9b2157;--accent-hover:#7e1a46;--accent-tint:rgba(155,33,87,.08);--accent-soft:#fce8f1;--focus:0 0 0 3px rgba(155,33,87,.15)}
+html[data-accent="rose"][data-theme-early="dark"]{--accent:#d45e95;--accent-hover:#e07aac;--accent-tint:rgba(212,94,149,.12);--accent-soft:rgba(212,94,149,.15);--focus:0 0 0 3px rgba(212,94,149,.30)}
+/* Custom (free-picked hex — JS writes inline style on :root via accent.js) */
+
+/* Reset & base */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;height:100%}
+/* Prevent off-canvas rails (transformed with translateX(100%)) from
+   expanding the layout viewport and pushing position:fixed elements
+   (like the tour card) off-screen on mobile. */
+html{overflow-x:hidden}
+body{overflow-x:hidden}
+body.builder-body{overflow:hidden}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none;padding:0}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent-tint);color:var(--ink)}
+
+/* Focus rings */
+:focus-visible{outline:none;box-shadow:var(--focus);border-radius:var(--r-sm)}
+
+/* Utility bits */
+.hidden{display:none!important}
+.only-mobile{display:none}
+@media(max-width:840px){
+  .only-mobile{display:initial}
+  .no-mobile{display:none!important}
+}

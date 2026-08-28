@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<link rel="icon" href="/favicon.ico?v=2" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32-v2.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16-v2.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-v2.png">
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon-precomposed-v2.png">
+<meta name="msapplication-TileImage" content="/apple-touch-icon-v2.png">
+<meta name="msapplication-TileColor" content="#7a1f2b">
+<link rel="manifest" href="/site.webmanifest?v=2">
+<meta name="color-scheme" content="dark light">
+<style>html{background:#050505;color-scheme:dark light}html[data-theme-early="light"]{background:#fafafa}</style>
+<script>/*fouc*/(function(){try{
+var h=document.documentElement,
+ts=localStorage.getItem("bsh_theme_v1")||"auto",
+ac=localStorage.getItem("bsh_accent_v1")||"",
+r=ts==="auto"?(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"):ts;
+h.style.colorScheme=r;
+h.style.background=r==="dark"?"#050505":"#fafafa";
+h.setAttribute("data-theme-early",r);
+h.classList.add("theme-"+r+"-early");
+if(/^#[0-9a-fA-F]{6}$/.test(ac)){
+h.setAttribute("data-accent",ac);
+var p=parseInt(ac.slice(1),16),rv=(p>>16)&255,gv=(p>>8)&255,bv=p&255;
+function cl(x){return Math.max(0,Math.min(255,Math.round(x)));}
+function rgb(r,g,b){return"rgb("+r+","+g+","+b+")";}
+var dk=r==="dark";
+var fa=dk?rgb(cl(rv+40),cl(gv+40),cl(bv+40)):ac;
+var fh=dk?rgb(cl(rv+60),cl(gv+60),cl(bv+60)):rgb(cl(rv-18),cl(gv-18),cl(bv-18));
+var ta=dk?0.12:0.08;
+var ft="rgba("+rv+","+gv+","+bv+","+ta+")";
+var fs=dk?"rgba("+rv+","+gv+","+bv+",.15)":rgb(cl(rv+110),cl(gv+110),cl(bv+110));
+var ff="0 0 0 3px rgba("+rv+","+gv+","+bv+","+(dk?0.30:0.15)+")";
+var s=document.createElement("style");
+s.id="bsh-accent-fouc";
+s.textContent="html[data-accent]{--accent:"+fa+";--accent-hover:"+fh+";--accent-tint:"+ft+";--accent-soft:"+fs+";--focus:"+ff+"}"
++"html[data-accent][data-theme-early=dark],html[data-accent][data-theme-early=dark] body{--accent:"+fa+";--accent-hover:"+fh+";--accent-tint:"+ft+";--accent-soft:"+fs+";--focus:"+ff+"}";
+document.head.appendChild(s);
+}
+}catch(e){}})();</script>
+
+<title>Schedule — Teams — Bible Parlor</title>
+<meta name="description" content="Schedule and review Bible studies, cultivation visits, and baptisms for your church Teams." />
+<link rel="canonical" href="https://bibleparlor.com/teams/schedule/" />
+<meta name="robots" content="noindex, follow" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="/shared/tokens.css?v=8"/>
+<link rel="stylesheet" href="/shared/hub-chrome.css?v=30"/>
+<link rel="stylesheet" href="/shared/hub-modern.css?v=9"/>
+<link rel="stylesheet" href="/teams.css?v=6"/>
+</head>
+<body class="hub-body" data-tool="teams">
+
+<header class="hub-topbar">
+  <div class="hub-tb-l">
+    <a href="/" class="hub-brand-mark" title="Teams home" aria-label="Teams home"><span class="hub-brand-glyph">❖</span><span class="hub-brand-name">Teams</span></a>
+  </div>
+  <div class="hub-tb-c">
+    <button class="hub-icon-btn hub-qj-center" data-quickjump title="Search (⌘K)" aria-label="Search">⌕</button>
+  </div>
+  <div class="hub-tb-r">
+    <button class="hub-icon-btn" id="btnTheme" title="Theme" aria-label="Toggle theme">◐</button>
+    <span id="acctSlot"></span>
+  </div>
+</header>
+
+<div class="teams-subbar">
+  <h1><a href="/" class="teams-back-link" aria-label="Back to Teams">‹</a> Schedule</h1>
+  <div class="teams-subbar-actions" id="scheduleActions"></div>
+</div>
+
+<main class="hub-content" id="mainContent">
+  <div class="teams-page teams-page-wide" id="scheduleRoot">
+    <div class="skeleton teams-skel-card" style="margin-bottom:12px"></div>
+    <div class="skeleton teams-skel-card" style="margin-bottom:12px"></div>
+    <div class="skeleton teams-skel-card"></div>
+  </div>
+</main>
+
+<div id="teamsTabbarSlot"></div>
+
+<script src="/shared/safe-storage.js?v=2"></script>
+<script src="/shared/theme.js?v=17"></script>
+<script src="/shared/i18n.js?v=1"></script>
+<script src="/shared/topbar.js?v=20" defer></script>
+<script src="/shared/icons.js?v=1" defer></script>
+<script src="/shared/account.js?v=25"></script>
+<script src="/shared/hub-chrome.js?v=6"></script>
+<script src="/shared/quick-jump.js?v=20"></script>
+<script src="/time-picker.js?v=1"></script>
+<script src="/teams.js?v=5"></script>
+<script src="/languages.js?v=1"></script>
+<script src="/schedule/schedule.js?v=6"></script>
+</body>
+</html>

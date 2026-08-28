@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<style>html{background:#050505;color-scheme:dark light}html[data-theme-early="light"]{background:#fafafa}</style>
+<script>/*fouc*/(function(){try{
+var h=document.documentElement,
+ts=localStorage.getItem("bsh_theme_v1")||"auto",
+ac=localStorage.getItem("bsh_accent_v1")||"",
+r=ts==="auto"?(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"):ts;
+h.style.colorScheme=r;
+h.style.background=r==="dark"?"#050505":"#fafafa";
+h.setAttribute("data-theme-early",r);
+h.classList.add("theme-"+r+"-early");
+if(/^#[0-9a-fA-F]{6}$/.test(ac)){
+h.setAttribute("data-accent",ac);
+var p=parseInt(ac.slice(1),16),rv=(p>>16)&255,gv=(p>>8)&255,bv=p&255;
+function cl(x){return Math.max(0,Math.min(255,Math.round(x)));}
+function rgb(r,g,b){return"rgb("+r+","+g+","+b+")";}
+var dk=r==="dark";
+var fa=dk?rgb(cl(rv+40),cl(gv+40),cl(bv+40)):ac;
+var fh=dk?rgb(cl(rv+60),cl(gv+60),cl(bv+60)):rgb(cl(rv-18),cl(gv-18),cl(bv-18));
+var ta=dk?0.12:0.08;
+var ft="rgba("+rv+","+gv+","+bv+","+ta+")";
+var fs=dk?"rgba("+rv+","+gv+","+bv+",.15)":rgb(cl(rv+110),cl(gv+110),cl(bv+110));
+var ff="0 0 0 3px rgba("+rv+","+gv+","+bv+","+(dk?0.30:0.15)+")";
+var s=document.createElement("style");
+s.id="bsh-accent-fouc";
+s.textContent="html[data-accent]{--accent:"+fa+";--accent-hover:"+fh+";--accent-tint:"+ft+";--accent-soft:"+fs+";--focus:"+ff+"}"
++"html[data-accent][data-theme-early=dark],html[data-accent][data-theme-early=dark] body{--accent:"+fa+";--accent-hover:"+fh+";--accent-tint:"+ft+";--accent-soft:"+fs+";--focus:"+ff+"}";
+document.head.appendChild(s);
+}
+}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Redirecting — Teams — Bible Parlor</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="canonical" href="https://bibleparlor.com/teams/schedule/" />
+<meta http-equiv="refresh" content="0; url=/teams/schedule/" />
+<script>location.replace('/teams/schedule/' + location.search);</script>
+</head>
+<body>
+<p>Sessions have moved to <a href="/schedule/">/teams/schedule/</a>.</p>
+</body>
+</html>

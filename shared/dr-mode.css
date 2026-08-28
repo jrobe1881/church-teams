@@ -1,0 +1,57 @@
+/* shared/dr-mode.css — Deep Research pill + shared visuals.
+   Depends on tokens.css. */
+
+.dr-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:var(--r-pill);
+  font-family:var(--font-sans);font-size:12px;font-weight:600;
+  background:transparent;color:var(--ink-2);
+  border:1px solid var(--border);
+  cursor:pointer;transition:all var(--dur-1);
+  white-space:nowrap;
+}
+.dr-pill:hover{border-color:var(--accent);color:var(--accent)}
+.dr-pill:focus-visible{outline:none;box-shadow:var(--focus)}
+.dr-pill.is-on{
+  background:var(--accent);color:#fff;border-color:var(--accent);
+}
+.dr-pill.is-on:hover{background:var(--accent-hover)}
+
+/* Small dot indicator when DR is on across the site */
+html.dr-on .dr-indicator{color:var(--accent)}
+
+/* DR source cards used in Explorer AI + Reader side panel */
+.dr-source{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:10px 12px;margin:8px 0;
+  font-size:var(--t-sm);
+}
+.dr-source-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-weight:600;color:var(--ink);margin-bottom:4px;
+}
+.dr-source-head a{color:var(--accent);text-decoration:none}
+.dr-source-head a:hover{text-decoration:underline}
+.dr-source-meta{color:var(--ink-3);font-size:12px;font-style:italic}
+.dr-source-snippet{color:var(--ink-2);line-height:1.5}
+.dr-source-snippet b{background:var(--accent-tint);padding:0 2px;border-radius:2px}
+
+.dr-cite{
+  display:inline-block;background:var(--accent);color:#fff;
+  border-radius:3px;padding:0 5px;font-size:11px;font-weight:600;
+  margin:0 2px;vertical-align:baseline;text-decoration:none;
+  cursor:pointer;
+}
+.dr-cite:hover{background:var(--accent-hover)}
+
+/* Answer body: paragraphs and section headings */
+.dr-answer .dr-p{margin:0 0 12px;line-height:1.7;color:var(--ink)}
+.dr-answer .dr-h{
+  margin:18px 0 6px;
+  font:600 15px var(--font-serif);
+  color:var(--accent);
+  letter-spacing:.01em;
+}
+.dr-answer .dr-h:first-child{margin-top:0}
+.dr-answer strong{color:var(--ink);font-weight:600}
+.dr-answer .dr-p + .dr-p{margin-top:0}

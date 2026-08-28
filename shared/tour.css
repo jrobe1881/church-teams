@@ -1,0 +1,184 @@
+/* /shared/tour.css — Interactive tour overlay + spotlight ring + tooltip card.
+   Consumes the shared design tokens. */
+
+.bsh-tour-overlay{
+  position:fixed;inset:0;z-index:99990;
+  background:rgba(20,19,16,.55);
+  backdrop-filter:blur(2px);
+  animation:bshTourFadeIn .2s ease-out;
+}
+html[data-theme-early="light"] .bsh-tour-overlay,
+.theme-light-early .bsh-tour-overlay{background:rgba(20,19,16,.35)}
+
+@keyframes bshTourFadeIn{ from{opacity:0} to{opacity:1} }
+
+/* Spotlight ring — a rounded, glowing outline around the highlighted element. */
+.bsh-tour-ring{
+  position:fixed;
+  border-radius:calc(var(--r-md, 8px) + 4px);
+  pointer-events:none;
+  opacity:0;
+  transition:left .28s ease, top .28s ease, width .28s ease, height .28s ease, opacity .2s ease;
+  box-shadow:
+    0 0 0 3px var(--accent, #7a1f2b),
+    0 0 0 9999px rgba(20,19,16,.55),
+    0 0 24px 4px var(--accent-tint, rgba(122,31,43,.35));
+}
+html[data-theme-early="light"] .bsh-tour-ring,
+.theme-light-early .bsh-tour-ring{
+  box-shadow:
+    0 0 0 3px var(--accent, #7a1f2b),
+    0 0 0 9999px rgba(20,19,16,.35),
+    0 0 24px 4px var(--accent-tint, rgba(122,31,43,.28));
+}
+.bsh-tour-ring.show{opacity:1}
+
+/* When the ring is showing, the overlay itself should be transparent —
+   the ring's outer box-shadow provides the mask. */
+.bsh-tour-overlay:has(.bsh-tour-ring.show){background:transparent;backdrop-filter:none}
+
+/* Tooltip card */
+.bsh-tour-card{
+  position:fixed;
+  width:340px;max-width:calc(100vw - 32px);
+  background:var(--surface, #fff);
+  color:var(--ink, #27272a);
+  border:1px solid var(--border, #e4e4e7);
+  border-radius:var(--r-lg, 12px);
+  box-shadow:var(--shadow-3, 0 12px 32px rgba(20,19,16,.10),0 4px 12px rgba(20,19,16,.06));
+  padding:20px 20px 16px;
+  font-family:var(--font-sans, 'Inter', system-ui, sans-serif);
+  z-index:99991;
+  transition:left .28s ease, top .28s ease;
+  animation:bshTourCardIn .28s cubic-bezier(.2,.9,.3,1.2);
+}
+@keyframes bshTourCardIn{
+  from{opacity:0;transform:scale(.96)}
+  to{opacity:1;transform:scale(1)}
+}
+
+.bsh-tour-progress{
+  font-size:var(--t-xs, .72rem);
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--ink-3, #71717a);
+  margin-bottom:8px;
+}
+.bsh-tour-title{
+  margin:0 0 8px;
+  font-size:1.06rem;
+  font-weight:700;
+  letter-spacing:-.01em;
+  color:var(--ink, #27272a);
+  line-height:1.25;
+}
+.bsh-tour-body{
+  margin:0 0 18px;
+  font-size:var(--t-md, .93rem);
+  line-height:1.5;
+  color:var(--ink-2, #52525b);
+}
+
+.bsh-tour-actions{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.bsh-tour-nav{display:flex;gap:8px}
+
+.bsh-tour-btn,.bsh-tour-skip{
+  font:inherit;
+  font-size:var(--t-sm, .82rem);
+  font-weight:600;
+  padding:7px 14px;
+  border-radius:var(--r-md, 8px);
+  border:1px solid transparent;
+  cursor:pointer;
+  transition:background .15s ease, border-color .15s ease, color .15s ease, transform .1s ease;
+  font-family:inherit;
+}
+.bsh-tour-btn:active{transform:scale(.97)}
+
+.bsh-tour-back{
+  background:transparent;
+  color:var(--ink-2, #52525b);
+  border-color:var(--border, #e4e4e7);
+}
+.bsh-tour-back:hover{background:var(--surface-2, #f4f4f5);border-color:var(--border-strong, #d4d4d8)}
+
+.bsh-tour-next{
+  background:var(--accent, #7a1f2b);
+  color:#fff;
+  border-color:var(--accent, #7a1f2b);
+}
+.bsh-tour-next:hover{background:var(--accent-hover, #661820);border-color:var(--accent-hover, #661820)}
+
+.bsh-tour-skip{
+  background:none;
+  border:none;
+  color:var(--ink-3, #71717a);
+  padding:6px 4px;
+  text-decoration:underline;
+  text-decoration-color:transparent;
+  text-underline-offset:3px;
+}
+.bsh-tour-skip:hover{color:var(--ink, #27272a);text-decoration-color:currentColor}
+
+/* Placement-specific arrow */
+.bsh-tour-card::before{
+  content:'';
+  position:absolute;
+  width:14px;height:14px;
+  background:var(--surface, #fff);
+  border:1px solid var(--border, #e4e4e7);
+  transform:rotate(45deg);
+  display:none;
+}
+.bsh-tour-card.placement-bottom::before{display:block;top:-8px;left:50%;margin-left:-7px;border-right:none;border-bottom:none}
+.bsh-tour-card.placement-top::before{display:block;bottom:-8px;left:50%;margin-left:-7px;border-left:none;border-top:none}
+.bsh-tour-card.placement-right::before{display:block;left:-8px;top:50%;margin-top:-7px;border-top:none;border-right:none}
+.bsh-tour-card.placement-left::before{display:block;right:-8px;top:50%;margin-top:-7px;border-bottom:none;border-left:none}
+.bsh-tour-card.placement-center::before{display:none}
+
+/* Mobile: full-width card docked at the bottom, capped height so long
+   bodies scroll internally instead of pushing Skip/Back/Next off-screen. */
+@media (max-width: 640px){
+  .bsh-tour-card{
+    width:calc(100vw - 24px);
+    left:12px !important;
+    right:12px;
+    bottom:12px;
+    top:auto !important;
+    max-width:none;
+    max-height:min(70vh, 560px);
+    display:flex;
+    flex-direction:column;
+    padding:16px 16px 12px;
+  }
+  .bsh-tour-card::before{display:none !important}
+  .bsh-tour-progress{margin-bottom:6px}
+  .bsh-tour-title{font-size:1.02rem;margin-bottom:6px}
+  .bsh-tour-body{
+    margin:0 0 14px;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    flex:1 1 auto;
+    min-height:0;
+    font-size:.9rem;
+  }
+  .bsh-tour-actions{flex-shrink:0}
+  .bsh-tour-btn{padding:9px 16px;font-size:.86rem;min-height:38px}
+  .bsh-tour-skip{padding:8px 4px}
+  /* Give the ring a slightly softer feel on mobile since the card is
+     always docked and the ring is height-capped in JS. */
+  .bsh-tour-ring{
+    box-shadow:
+      0 0 0 3px var(--accent, #7a1f2b),
+      0 0 0 9999px rgba(20,19,16,.45),
+      0 0 20px 3px var(--accent-tint, rgba(122,31,43,.30));
+  }
+}
+
+/* Dark mode via tokens (surfaces auto-swap through the token system) */

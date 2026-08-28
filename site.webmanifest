@@ -1,0 +1,17 @@
+{
+  "name": "Bible Parlor",
+  "short_name": "Bible Parlor",
+  "description": "Free interactive KJV study Bible with Strong's Concordance, atlas, lexicon, and sermon builder.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#7a1f2b",
+  "theme_color": "#7a1f2b",
+  "icons": [
+    { "src": "/android-chrome-192x192.png?v=2", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/android-chrome-512x512.png?v=2", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/android-chrome-512x512.png?v=2", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon.svg?v=2", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

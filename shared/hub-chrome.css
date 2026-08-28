@@ -1,0 +1,606 @@
+/* /shared/hub-chrome.css — Site-wide chrome shared across all tools.
+   Depends on /shared/tokens.css. Provides the same topbar, safe-area,
+   focus rings, buttons, and mobile shell as the Builder. */
+
+body.hub-body{background:var(--bg);color:var(--ink);min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}
+
+/* ============ Topbar (matches Builder) ============
+   --topbar-h is consumed by the mobile drawer so it never sits under the
+   sticky topbar. Kept in sync with the media-query overrides below. */
+:root{--topbar-h:64px}
+@media (max-width:840px){:root{--topbar-h:60px}}
+@media (max-width:520px){:root{--topbar-h:56px}}
+@media (max-width:380px){:root{--topbar-h:52px}}
+
+.hub-topbar{
+  display:flex;align-items:center;gap:var(--s-3);
+  padding:var(--s-3) var(--s-5);
+  padding-top:max(var(--s-3), env(safe-area-inset-top));
+  padding-left:max(var(--s-5), env(safe-area-inset-left));
+  padding-right:max(var(--s-5), env(safe-area-inset-right));
+  background:var(--surface);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:9000;
+}
+.hub-tb-l,.hub-tb-r{display:flex;align-items:center;gap:var(--s-2);flex-wrap:nowrap;min-width:0}
+.hub-tb-r{flex-shrink:0}
+.hub-tb-r>*{flex-shrink:0}
+.hub-tb-c{flex:1;display:flex;align-items:center;justify-content:center;gap:var(--s-2);min-width:0}
+.hub-brand{
+  display:flex;align-items:center;gap:8px;font-family:var(--font-serif);
+  font-weight:600;color:var(--ink);font-size:var(--t-lg);
+  padding:6px 12px;border-radius:var(--r-md);
+  transition:background var(--dur-1);
+}
+.hub-brand:hover{background:var(--surface-2)}
+.hub-brand-dot{
+  width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;
+}
+.hub-icon-btn{
+  width:40px;height:40px;border-radius:var(--r-md);
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--ink-2);font-size:1.35rem;line-height:1;
+  transition:background var(--dur-1),color var(--dur-1);
+}
+.hub-icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+.hub-icon-btn.active{background:var(--accent-tint);color:var(--accent)}
+/* Quick-jump glyph (⌕) renders optically smaller than the other glyphs at the
+   same font-size, so give it an extra bump to match ◐ (theme) and the rest. */
+.hub-icon-btn.hub-qj-center,
+.hub-icon-btn[data-quickjump],
+.hub-icon-btn#btnQuickJump{font-size:1.6rem;font-weight:600}
+.hub-home-btn{font-size:1.35rem}
+.hub-title{
+  font-family:var(--font-serif);font-size:var(--t-md);color:var(--ink);
+  font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw;
+}
+.hub-title-sub{color:var(--ink-3);font-size:var(--t-sm);margin-left:6px}
+/* Builder-style minimalist brand mark: glyph + short name, sits in .hub-tb-l */
+.hub-brand-mark{
+  display:inline-flex;align-items:center;gap:8px;padding:4px 10px;
+  border-radius:var(--r-md);border:1px solid transparent;background:transparent;
+  font-family:var(--font-serif);font-weight:600;font-size:var(--t-md);
+  color:var(--ink);letter-spacing:-.005em;line-height:1;cursor:pointer;
+  transition:border-color var(--dur-1),background var(--dur-1);
+}
+.hub-brand-mark:hover{background:var(--surface-2)}
+.hub-brand-mark .hub-brand-glyph{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;font-family:var(--font-sans);font-size:1rem;
+  color:var(--accent);flex-shrink:0;line-height:1;
+}
+.hub-brand-mark .hub-brand-name{white-space:nowrap;font-weight:600}
+.hub-home-btn{color:var(--ink-2);font-size:1.35rem;line-height:1}
+.hub-home-btn:hover{color:var(--accent)}
+@media (max-width:640px){
+  .hub-brand-mark{padding:2px 6px;font-size:var(--t-sm);gap:6px}
+  .hub-brand-mark .hub-brand-glyph{width:20px;height:20px;font-size:.9rem}
+}
+
+/* ============ Page layout ============ */
+.hub-main{flex:1;min-height:0;display:grid;grid-template-columns:280px 1fr 320px;overflow:hidden}
+.hub-main.no-left{grid-template-columns:1fr 320px}
+.hub-main.no-right{grid-template-columns:280px 1fr}
+/* Leaflet attribution flag can render huge in some builds; force sane size */
+.leaflet-attribution-flag{width:12px;height:8px}
+.hub-main.no-rails{grid-template-columns:1fr}
+
+.hub-rail{
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;min-width:0;overflow:hidden;
+}
+.hub-rail.right{border-right:none;border-left:1px solid var(--border)}
+.hub-rail-head{
+  padding:var(--s-4) var(--s-4) var(--s-3);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);flex-shrink:0;
+}
+.hub-rail-title{
+  font-size:var(--t-xs);font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+.hub-rail-body{flex:1;overflow-y:auto;padding:var(--s-4);min-height:0}
+.hub-rail-foot{padding:var(--s-3) var(--s-4);border-top:1px solid var(--border);flex-shrink:0}
+.hub-rail-tabs{
+  display:flex;padding:var(--s-2);gap:2px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.hub-tab{
+  flex:1;padding:8px 4px;border-radius:var(--r-sm);position:relative;
+  font-size:var(--t-xs);font-weight:500;color:var(--ink-3);
+  transition:background var(--dur-1),color var(--dur-1);
+  text-transform:uppercase;letter-spacing:.05em;
+}
+.hub-tab:hover{background:var(--surface-2);color:var(--ink-2)}
+.hub-tab.active{background:var(--accent-tint);color:var(--accent)}
+.hub-tab-badge{position:absolute;top:2px;right:4px;background:var(--accent);color:#fff;border-radius:9px;font-size:.58rem;font-weight:700;line-height:1;padding:2px 5px;min-width:14px;text-align:center}
+
+/* ============ Content area ============ */
+.hub-content{overflow-y:auto;background:var(--bg);min-width:0;position:relative}
+.hub-content-inner{max-width:900px;margin:0 auto;padding:var(--s-8) var(--s-6)}
+.hub-content-narrow{max-width:720px}
+.hub-content-wide{max-width:1200px}
+
+/* ============ Buttons ============ */
+.hub-btn-primary{
+  padding:10px 18px;background:var(--accent);color:#fff;border-radius:var(--r-md);
+  font-weight:500;font-size:var(--t-sm);
+  transition:background var(--dur-1);display:inline-flex;align-items:center;gap:6px;
+}
+.hub-btn-primary:hover{background:var(--accent-hover)}
+.hub-btn-secondary{
+  padding:10px 18px;background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:var(--r-md);
+  font-weight:500;font-size:var(--t-sm);
+  transition:background var(--dur-1),border-color var(--dur-1);display:inline-flex;align-items:center;gap:6px;
+}
+.hub-btn-secondary:hover{background:var(--surface-2);border-color:var(--border-strong)}
+.hub-btn-ghost{
+  padding:8px 12px;background:transparent;color:var(--ink-2);border-radius:var(--r-md);
+  font-weight:500;font-size:var(--t-sm);
+  transition:background var(--dur-1),color var(--dur-1);display:inline-flex;align-items:center;gap:6px;
+}
+.hub-btn-ghost:hover{background:var(--surface-2);color:var(--ink)}
+.hub-btn-danger{
+  padding:8px 12px;background:transparent;color:var(--ink-3);border-radius:var(--r-md);
+  font-size:var(--t-sm);border:1px solid var(--border);
+}
+.hub-btn-danger:hover{background:#fff5f5;color:#c1272d;border-color:#f4c4c4}
+
+/* ============ Inputs ============ */
+.hub-input{
+  width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-md);font-size:16px;color:var(--ink);
+  transition:border-color var(--dur-1),box-shadow var(--dur-1);
+  font-family:var(--font-sans);
+}
+.hub-input:focus{outline:none;border-color:var(--accent);box-shadow:var(--focus)}
+.hub-input::placeholder{color:var(--ink-muted)}
+.hub-select{
+  width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-md);font-size:16px;color:var(--ink);cursor:pointer;
+  font-family:var(--font-sans);appearance:none;-webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+  background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+  padding-right:32px;
+}
+.hub-select:focus{outline:none;border-color:var(--accent);box-shadow:var(--focus)}
+
+/* ============ Cards ============ */
+.hub-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:var(--s-6);box-shadow:var(--shadow-1);
+  transition:border-color var(--dur-2),box-shadow var(--dur-2);
+}
+.hub-card:hover{border-color:var(--border-strong);box-shadow:var(--shadow-2)}
+.hub-card-title{font-family:var(--font-serif);font-size:var(--t-lg);font-weight:600;color:var(--ink);margin:0 0 var(--s-2)}
+.hub-card-sub{font-size:var(--t-sm);color:var(--ink-3);margin:0 0 var(--s-4);line-height:1.55}
+
+/* ============ Hint / empty state ============ */
+.hub-hint{
+  font-size:var(--t-xs);color:var(--ink-3);padding:8px 10px;
+  background:var(--surface-2);border-radius:var(--r-sm);line-height:1.5;
+  margin-bottom:var(--s-3);
+}
+.hub-empty{color:var(--ink-3);font-size:var(--t-sm);text-align:center;padding:32px 12px;font-style:italic}
+
+/* ============ Verse chip (matches Builder) ============ */
+.hub-verse-chip{
+  display:flex;align-items:flex-start;gap:var(--s-2);padding:10px 12px;
+  background:var(--surface-2);border-left:3px solid var(--accent);border-radius:var(--r-sm);
+  font-size:var(--t-sm);line-height:1.55;margin-bottom:8px;
+}
+.hub-verse-chip-ref{font-weight:600;color:var(--accent);flex-shrink:0;font-family:var(--font-sans);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.04em;margin-top:2px;min-width:80px}
+.hub-verse-chip-txt{flex:1;font-family:var(--font-scripture);color:var(--ink)}
+
+/* ============ Scripture text ============ */
+.hub-scripture{font-family:var(--font-scripture);line-height:1.75;color:var(--ink);font-size:var(--t-lg)}
+.hub-scripture .vnum{color:var(--accent);font-size:.75em;font-weight:600;vertical-align:super;margin-right:3px;font-family:var(--font-sans)}
+.hub-scripture sup.strong{color:var(--ink-muted);font-size:.7em;cursor:pointer;text-decoration:none;margin-left:1px}
+.hub-scripture sup.strong:hover{color:var(--accent)}
+
+/* ============ Toast ============ */
+.hub-toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--n800);color:var(--n0);padding:10px 18px;border-radius:var(--r-pill);
+  font-size:var(--t-sm);box-shadow:var(--shadow-3);z-index:200;
+  opacity:0;transition:opacity var(--dur-2),transform var(--dur-2);pointer-events:none;
+}
+.hub-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ============ Modal (matches Builder) ============ */
+.hub-modal-backdrop{
+  position:fixed;inset:0;background:rgba(20,19,16,.4);z-index:9500;
+  display:flex;align-items:center;justify-content:center;padding:var(--s-4);
+  opacity:0;transition:opacity var(--dur-2);
+}
+.hub-modal-backdrop.open{opacity:1}
+.hub-modal{
+  background:var(--surface);border-radius:var(--r-lg);width:100%;max-width:640px;max-height:90vh;
+  display:flex;flex-direction:column;box-shadow:var(--shadow-3);
+  transform:scale(.98);opacity:0;transition:transform var(--dur-2) var(--ease),opacity var(--dur-2);
+}
+.hub-modal.open{transform:scale(1);opacity:1}
+.hub-modal-head{padding:var(--s-4) var(--s-5);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.hub-modal-title{font-family:var(--font-serif);font-size:var(--t-xl);font-weight:600;color:var(--ink)}
+.hub-modal-body{padding:var(--s-5);overflow-y:auto;flex:1}
+.hub-modal-foot{padding:var(--s-3) var(--s-5);display:flex;gap:var(--s-2);justify-content:flex-end;border-top:1px solid var(--border)}
+
+/* ============ Mobile shell (matches Builder) ============ */
+/* Higher-specificity selectors so these beat .hub-icon-btn{display:inline-flex}
+ * from later in this file. Without them, .hub-mobile-menu/.only-mobile
+ * buttons stay visible on desktop and look like dead controls. */
+.hub-topbar .hub-mobile-menu,
+.hub-topbar .only-mobile{display:none}
+@media (max-width:840px){
+  .hub-main{grid-template-columns:1fr}
+  .hub-main.no-rails{grid-template-columns:1fr}
+  .hub-main.no-right{grid-template-columns:1fr}
+  /* Normalize Leaflet attribution flag SVG that can render huge in some builds */
+  .leaflet-attribution-flag{width:12px !important;height:8px !important}
+  .hub-rail{
+    /* Start below the sticky topbar so the first tab row is never clipped.
+       env() adds the iOS notch inset the topbar itself reserves. */
+    position:fixed;
+    top:calc(var(--topbar-h) + env(safe-area-inset-top, 0px));
+    bottom:0;width:min(88vw,340px);z-index:80;
+    box-shadow:var(--shadow-3);transform:translateX(-100%);
+    transition:transform var(--dur-2) var(--ease);
+    border-right:1px solid var(--border);
+  }
+  /* Backdrop must also start below the topbar so the topbar stays tappable
+     (theme, tools, account) while the drawer is open. */
+  .hub-rail-backdrop{top:calc(var(--topbar-h) + env(safe-area-inset-top, 0px))}
+  .hub-rail.right{right:0;left:auto;border-left:1px solid var(--border);border-right:none;transform:translateX(100%)}
+  .hub-rail.left{left:0;right:auto}
+  .hub-rail.open{transform:translateX(0)}
+  .hub-topbar .hub-mobile-menu,
+  .hub-topbar .only-mobile{display:inline-flex}
+  .hub-title{max-width:40vw;font-size:var(--t-sm)}
+  .hub-content-inner{padding:var(--s-5) var(--s-4)}
+  .hub-icon-btn{width:40px;height:40px}
+  /* Full-screen bottom-sheet style modal on mobile.
+     Anchored to bottom so the header/body stay visible above the Safari
+     bottom toolbar, and safe-area insets keep it clear of the iOS notch. */
+  .hub-modal-backdrop{padding:0;align-items:stretch;justify-content:stretch}
+  .hub-modal{
+    width:100%;max-width:100%;height:100dvh;max-height:100dvh;
+    border-radius:0;margin:0;
+  }
+  .hub-modal-head{
+    padding:var(--s-3) var(--s-4);
+    padding-top:calc(var(--s-3) + env(safe-area-inset-top));
+    position:sticky;top:0;background:var(--surface);z-index:2;
+  }
+  .hub-modal-body{
+    padding:var(--s-4);
+    padding-bottom:calc(var(--s-4) + env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling:touch;
+  }
+  .hub-modal-foot{
+    padding:var(--s-3) var(--s-4);
+    padding-bottom:calc(var(--s-3) + env(safe-area-inset-bottom));
+    position:sticky;bottom:0;background:var(--surface);z-index:2;
+  }
+}
+@media (max-width:520px){
+  .hub-topbar{padding:var(--s-2) 8px;padding-top:max(var(--s-2),env(safe-area-inset-top));padding-right:max(8px,env(safe-area-inset-right));padding-left:max(8px,env(safe-area-inset-left))}
+  .hub-tb-r{gap:4px}
+  .hub-tb-c{gap:4px}
+  /* Hide the wordmark text — keep the glyph so the brand is still visible */
+  .hub-brand-mark .hub-brand-name{display:none}
+  .hub-brand-mark{gap:0;padding:2px 6px}
+  /* Hide inter-tool nav anchor icons — covered by the Tools dropdown */
+  .hub-topbar .hub-tb-r > a.hub-icon-btn:not(.hub-mobile-menu):not(.hub-journey-btn){display:none}
+  /* Collapse Tools pill: hide "Tools" text label, keep just the caret icon.
+     The caret alone is recognisable as a menu trigger at this size. */
+  .hub-tools-btn-lbl{display:none}
+  .hub-tools-btn{padding:0;width:32px;height:32px;border-radius:var(--r-md);gap:0;justify-content:center}
+  .hub-tools-btn-caret{width:16px;height:16px;font-size:.75rem;background:none}
+  /* Hide the accent color dot on narrow phones — it eats a full icon slot.
+     Users can change accent from the account page or a wider viewport. */
+  .bsh-accent-btn{display:none}
+  /* Compact account chip */
+  .hub-topbar .acct-fab.in-slot .acct-btn{height:34px;padding:0 6px;gap:6px}
+  .hub-topbar .acct-fab.in-slot .acct-label{display:none}
+}
+
+/* Drop the redundant center-slot search shortcut on all screens — replaced by
+   the bottom-left ⌕ FAB from quick-jump.js. */
+.hub-topbar .hub-tb-c #btnQuickJump,
+.hub-topbar .hub-tb-c .hub-qj-center,
+.hub-topbar .hub-tb-c [data-quickjump]{display:none !important}
+
+@media (max-width:380px){
+  .hub-topbar{padding-left:max(4px,env(safe-area-inset-left));padding-right:max(4px,env(safe-area-inset-right))}
+  .hub-tb-r{gap:2px}
+  .hub-brand-mark{padding:2px 4px;gap:4px;font-size:var(--t-xs)}
+  .hub-brand-mark .hub-brand-glyph{width:18px;height:18px;font-size:.85rem}
+  .hub-icon-btn{width:36px;height:36px}
+}
+
+/* Backdrop for open mobile rail */
+.hub-rail-backdrop{
+  display:none;position:fixed;inset:0;background:rgba(20,19,16,.35);z-index:75;
+}
+.hub-rail-backdrop.show{display:block}
+@media (min-width:841px){.hub-rail-backdrop{display:none !important}}
+
+/* Screen-reader-only utility (visually hidden, still readable by crawlers + AT) */
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* Zero-size anchor + journey slot injected by topbar.js to hold fixed insertion positions */
+.hub-tb-anchor,.hub-journey-slot{display:inline;width:0;height:0;padding:0;margin:0;border:none;overflow:hidden;pointer-events:none}
+
+/* ============ Universal Tools dropdown (topbar.js) ============ */
+.hub-tools-wrap{position:relative;display:inline-flex}
+/* Solid burgundy pill — clearly reads as a menu/CTA, not an icon button. */
+.hub-tools-btn{
+  width:auto;height:34px;padding:0 12px;gap:6px;
+  font-size:var(--t-sm);font-weight:600;letter-spacing:-.005em;
+  background:var(--accent,#7a1f2b);color:#fff;
+  border:1px solid var(--accent,#7a1f2b);border-radius:999px;
+  display:inline-flex;align-items:center;
+  box-shadow:0 1px 2px rgba(0,0,0,.15);
+  transition:background 160ms,transform 160ms,box-shadow 160ms;
+}
+.hub-tools-btn:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:#fff;transform:translateY(-1px);box-shadow:0 3px 8px var(--accent-tint)}
+.hub-tools-btn:active{transform:translateY(0);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.hub-tools-btn[aria-expanded="true"]{background:var(--accent-hover);border-color:var(--accent-hover);color:#fff}
+.hub-tools-btn-lbl{font-family:var(--font-sans);letter-spacing:-.005em;color:#fff}
+.hub-tools-btn-caret{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:16px;height:16px;border-radius:50%;
+  background:rgba(255,255,255,.22);color:#fff;
+  font-size:.7rem;font-weight:700;line-height:1;opacity:1;
+}
+.hub-tools-btn[aria-expanded="true"] .hub-tools-btn-caret{background:rgba(255,255,255,.32)}
+
+/* Split View button — desktop / tablet only. Mirrors .hub-tools-btn geometry
+   so it reads as a sibling of Tools, but uses an outlined-accent treatment to
+   stay secondary. */
+.hub-split-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 14px;
+  font:600 .875rem/1 var(--font-sans);letter-spacing:-.005em;
+  color:var(--accent,#7a1f2b);background:transparent;
+  border:1px solid var(--accent,#7a1f2b);border-radius:999px;
+  cursor:pointer;
+  box-shadow:0 1px 2px rgba(0,0,0,.08);
+  transition:background 160ms,color 160ms,transform 160ms,box-shadow 160ms;
+  margin-right:6px;
+}
+.hub-split-btn:hover{
+  background:var(--accent);color:#fff;
+  transform:translateY(-1px);
+  box-shadow:0 3px 8px var(--accent-tint);
+}
+.hub-split-btn:active{transform:translateY(0);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.hub-split-btn svg{color:currentColor;flex:0 0 auto}
+.hub-split-btn-lbl{color:currentColor}
+/* Dark theme: keep the outlined look readable on the dark topbar */
+[data-theme="dark"] .hub-split-btn,
+:root[data-theme="dark"] .hub-split-btn{
+  color:#fff;border-color:var(--accent-tint);
+  background:var(--accent-tint);
+}
+[data-theme="dark"] .hub-split-btn:hover,
+:root[data-theme="dark"] .hub-split-btn:hover{
+  background:var(--accent);color:#fff;border-color:var(--accent);
+}
+/* Hide on phones */
+@media (max-width:720px){ .hub-split-btn{display:none} }
+/* On narrow tablets, drop the text label and keep just the icon */
+@media (max-width:960px){
+  .hub-split-btn{padding:8px 10px}
+  .hub-split-btn-lbl{display:none}
+}
+
+/* Journey icon button — outlined accent, matches hub-icon-btn footprint.
+   Uses !important on display to beat the mobile hide rule at
+   .hub-topbar .hub-tb-r > a.hub-icon-btn:not(...):not(...){display:none}
+   without an escalating specificity war. */
+.hub-topbar .hub-tb-r > a.hub-journey-btn{
+  display:inline-flex !important;
+  align-items:center;justify-content:center;
+  width:40px;height:40px;border-radius:var(--r-md);
+  color:var(--accent);
+  border:1px solid var(--accent-tint);
+  background:transparent;
+  margin-right:4px;
+  transition:background 160ms,color 160ms,border-color 160ms;
+}
+.hub-topbar .hub-tb-r > a.hub-journey-btn:hover{
+  background:var(--accent);color:#fff;border-color:var(--accent);
+}
+[data-theme="dark"] .hub-topbar .hub-tb-r > a.hub-journey-btn,
+:root[data-theme="dark"] .hub-topbar .hub-tb-r > a.hub-journey-btn{
+  color:var(--accent);border-color:var(--accent-tint);
+}
+[data-theme="dark"] .hub-topbar .hub-tb-r > a.hub-journey-btn:hover,
+:root[data-theme="dark"] .hub-topbar .hub-tb-r > a.hub-journey-btn:hover{
+  background:var(--accent);color:#fff;border-color:var(--accent);
+}
+@media (max-width:720px){
+  .hub-topbar .hub-tb-r > a.hub-journey-btn{width:36px;height:36px}
+}
+
+.hub-tools-menu{
+  display:none;position:absolute;top:calc(100% + 6px);right:0;
+  min-width:220px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-md);box-shadow:0 8px 24px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  padding:6px;z-index:9990;
+}
+.hub-tools-menu.open{display:block}
+.hub-tools-item{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);
+  color:var(--ink);text-decoration:none;font-size:var(--t-sm);font-weight:500;
+  min-height:40px;cursor:pointer;transition:background var(--dur-1);
+}
+.hub-tools-item:hover{background:var(--surface-2)}
+.hub-tools-item.is-current{color:var(--ink-3);cursor:default;background:transparent}
+.hub-tools-item.is-current:hover{background:transparent}
+.hub-tools-item-icon{
+  width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;
+  color:var(--accent);font-size:1rem;line-height:1;flex-shrink:0;
+}
+.hub-tools-item.is-current .hub-tools-item-icon{color:var(--ink-3)}
+.hub-tools-item-lbl{flex:1}
+.hub-tools-item-badge{
+  font-size:.65rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ink-3);background:var(--surface-2);padding:2px 6px;border-radius:var(--r-sm);
+}
+.hub-tools-item-badge-count{
+  font-size:.7rem;font-weight:700;letter-spacing:0;text-transform:none;
+  color:#fff;background:var(--accent);padding:1px 7px;border-radius:var(--r-pill);
+}
+@media (max-width:520px){
+  /* Center the Tools dropdown on the viewport instead of anchoring it to the
+     button. On mobile the button sits near the left edge, so right:0 pushes
+     the menu off-screen. Fixed centering avoids clipping on every page. */
+  .hub-tools-menu{
+    position:fixed;
+    top:calc(var(--topbar-h) + env(safe-area-inset-top, 0px));
+    left:50%;
+    right:auto;
+    transform:translateX(-50%);
+    width:min(88vw,300px);
+    min-width:0;
+    max-height:calc(100dvh - var(--topbar-h) - 32px);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .hub-tools-btn{padding:0 8px;font-size:var(--t-xs);height:30px}
+  /* Optional dim backdrop while the menu is open so it reads as a modal-ish sheet */
+  .hub-tools-menu.open::before{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  }
+}
+
+/* Wave 2a: The floating Explorer FAB is superseded by the "Ask" tab in the
+   unified Search palette (see shared/quick-jump.js). Hide the floating
+   button so the site has ONE search entry-point in the topbar. */
+.bsh-eov-fab{display:none !important}
+
+/* Wave 3a: SVG icons in hub buttons (shared/icons.js).
+ * SVG replaces the Unicode glyph inside .hub-icon-btn and .rail-tools-nav.
+ * These rules size + center the SVG without touching parent layout.
+ */
+.hub-icon-btn > svg{display:inline-block;vertical-align:middle;flex-shrink:0}
+.hub-icon-btn{display:inline-flex;align-items:center;justify-content:center}
+.rail-tools-nav .tool-glyph.has-svg,
+.hub-tools-menu-item .hub-tools-menu-ic.has-svg{
+  display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;color:var(--ink-3)
+}
+.rail-tools-nav a:hover .tool-glyph.has-svg,
+.rail-tools-nav button:hover .tool-glyph.has-svg{color:var(--accent)}
+/* Slight negative offset so 20x20 SVG optically balances 32x32 button */
+.hub-icon-btn > svg{margin:1px}
+
+/* Wave 3c: 44x44 minimum tap targets on touch devices.
+ * WCAG 2.5.5 / Apple HIG. Applies to icon buttons and rail tab strip. */
+@media (pointer:coarse){
+  .hub-icon-btn{min-width:44px;min-height:44px}
+  .rail-tab{min-height:44px}
+  .rail-nav-btns button{min-height:44px}
+  .bx-doc-btn{min-height:44px}
+  .study-hl-row button{width:36px;height:36px}
+  .study-actions button{min-height:36px;padding:8px 12px}
+}
+/* Also: keep search input font ≥ 16px on iOS to prevent focus-zoom. */
+.qjm-input,#qjmInput,.acct-field input{font-size:16px}
+
+/* Wave 3d: On touch devices, suppress `title` tooltips on icon buttons so
+   they don't linger over the top-bar after a tap. Uses pointer:coarse
+   plus pointer-events:none on an ::after tooltip if one is used. */
+@media (pointer:coarse){
+  .hub-icon-btn{-webkit-tap-highlight-color:transparent}
+  .hub-icon-btn[title]{title:none}
+}
+
+/* ================================================================
+   SPLIT-VIEW EMBED  (.bp-embed-split on <html>)
+
+   Media queries inside an iframe fire against the HOST viewport,
+   not the pane width.  So the ≤840px mobile-drawer rules never
+   trigger even though each split pane is only ~half the screen.
+
+   We replicate the full mobile rail behaviour unconditionally
+   whenever a page is embedded in split view.
+
+   The topbar is collapsed to a slim strip showing only the
+   rail-toggle buttons (.hub-mobile-menu) via .bp-embed-topbar.
+   --embed-bar-h tracks that height so rails and layout below
+   it can use the correct offset.
+   ================================================================ */
+:root{--embed-bar-h:40px}
+
+/* Slim the topbar down to a rail-toggle-only strip */
+.bp-embed-topbar{
+  padding:0 8px !important;
+  min-height:var(--embed-bar-h) !important;
+  height:var(--embed-bar-h) !important;
+  gap:4px !important;
+  position:sticky;top:0;z-index:9000;
+}
+/* Hide everything in the topbar except the mobile-menu toggle buttons */
+.bp-embed-topbar > *{display:none !important}
+.bp-embed-topbar .hub-mobile-menu{display:inline-flex !important}
+/* Keep the left cluster visible so the left-side toggle shows */
+.bp-embed-topbar .hub-tb-l{display:flex !important;gap:4px !important;padding:0 !important}
+.bp-embed-topbar .hub-tb-r{display:flex !important;gap:4px !important;padding:0 !important}
+/* Hide non-toggle items inside those clusters */
+.bp-embed-topbar .hub-tb-l > :not(.hub-mobile-menu),
+.bp-embed-topbar .hub-tb-r > :not(.hub-mobile-menu){display:none !important}
+
+/* Force single-column layout and free the rails from the grid */
+.bp-embed-split .hub-main{grid-template-columns:1fr !important}
+
+/* Rails become fixed drawers that slide in over the content */
+.bp-embed-split .hub-rail{
+  position:fixed !important;
+  top:var(--embed-bar-h) !important;
+  bottom:0;
+  width:min(88vw,300px);
+  z-index:80;
+  box-shadow:var(--shadow-3);
+  transform:translateX(-100%);
+  transition:transform var(--dur-2) var(--ease);
+  border-right:1px solid var(--border);
+}
+.bp-embed-split .hub-rail.right{
+  right:0;left:auto;
+  border-left:1px solid var(--border);border-right:none;
+  transform:translateX(100%);
+}
+.bp-embed-split .hub-rail.left{left:0;right:auto}
+.bp-embed-split .hub-rail.open{transform:translateX(0) !important}
+
+/* Backdrop covers the full pane when a rail is open */
+.bp-embed-split .hub-rail-backdrop{display:none;position:fixed;inset:0;background:rgba(20,19,16,.35);z-index:75}
+.bp-embed-split .hub-rail-backdrop.show{display:block !important}
+
+/* ============ Language Switcher (hub-lang-wrap) ============ */
+.hub-lang-wrap{position:relative;display:inline-flex}
+.hub-lang-btn{width:40px;height:40px;border-radius:var(--r-md);display:inline-flex;align-items:center;justify-content:center;color:var(--ink-2);transition:background var(--dur-1),color var(--dur-1)}
+.hub-lang-btn:hover,.hub-lang-btn[aria-expanded="true"]{background:var(--surface-2);color:var(--ink)}
+.hub-lang-menu{
+  display:none;position:absolute;top:calc(100% + 6px);right:0;
+  min-width:140px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  box-shadow:0 6px 20px rgba(0,0,0,.12);z-index:9100;padding:4px;
+  flex-direction:column;
+}
+.hub-lang-menu.open{display:flex}
+.hub-lang-menu .hub-tools-item{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:9px 12px;border-radius:var(--r-md);
+  font-size:var(--t-sm);color:var(--ink-2);
+  text-decoration:none;cursor:pointer;
+  background:none;border:none;font-family:inherit;width:100%;text-align:left;
+  transition:background var(--dur-1),color var(--dur-1);
+}
+.hub-lang-menu .hub-tools-item:hover{background:var(--surface-2);color:var(--ink)}
+.hub-lang-menu .hub-tools-item.is-active{color:var(--accent)}
+.hub-lang-menu .hub-tools-item.is-active .hub-tools-item-badge{
+  font-size:.8rem;color:var(--accent);background:transparent;border:none;padding:0;
+}
+@media(max-width:520px){.hub-lang-btn{width:34px;height:34px}}
