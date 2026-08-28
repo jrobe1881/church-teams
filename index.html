@@ -406,14 +406,22 @@ body{
 <script>
 // Redirect logged-in users straight to the dashboard
 (function(){
+  function redirect(){
+    window.location.replace('/dashboard/');
+  }
   function checkAndRedirect(){
-    if(window.CloudAccount && window.CloudAccount.isSignedIn()){
-      window.location.replace('/dashboard/');
-    }
+    if(window.CloudAccount && window.CloudAccount.isSignedIn()) redirect();
   }
   function waitForAccount(){
-    if(window.CloudAccount && typeof window.CloudAccount.ready === 'function'){
-      window.CloudAccount.ready(checkAndRedirect);
+    if(window.CloudAccount && window.CloudAccount.ready){
+      // ready is a Promise — resolve fires once auth state is known on page load
+      window.CloudAccount.ready.then(checkAndRedirect);
+      // Also redirect immediately when user signs in via the modal
+      if(window.CloudAccount.onAuthChange){
+        window.CloudAccount.onAuthChange(function(user){
+          if(user) redirect();
+        });
+      }
     } else {
       setTimeout(waitForAccount, 50);
     }
