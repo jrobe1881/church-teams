@@ -277,6 +277,10 @@ body{
   .ct-footer{ flex-direction:column; align-items:flex-start; }
 }
 
+/* Hide sign-in/register buttons when user is signed in */
+.ct-signed-out-only { display: inline-flex; }
+body.ct-signed-in .ct-signed-out-only { display: none; }
+
 /* Theme toggle button in nav */
 #btnTheme{
   background:none; border:1px solid var(--border); color:var(--ink);
@@ -298,8 +302,9 @@ body{
   </a>
   <div class="ct-nav-actions">
     <button id="btnTheme" title="Toggle theme" aria-label="Toggle theme">◐</button>
-    <a href="/join/" class="ct-btn-ghost">Sign in</a>
-    <a href="/register/" class="ct-btn-primary">Get started</a>
+    <span id="acctSlot"></span>
+    <a href="/join/" class="ct-btn-ghost ct-signed-out-only">Sign in</a>
+    <a href="/register/" class="ct-btn-primary ct-signed-out-only">Get started</a>
   </div>
 </nav>
 
@@ -404,24 +409,24 @@ body{
 <script src="/shared/theme.js?v=17"></script>
 <script src="/shared/account.js?v=25"></script>
 <script>
-// Redirect logged-in users straight to the dashboard
 (function(){
   function redirect(){
     window.location.replace('/dashboard/');
   }
-  function checkAndRedirect(){
-    if(window.CloudAccount && window.CloudAccount.isSignedIn()) redirect();
+  function applyAuthState(user){
+    if(user){
+      document.body.classList.add('ct-signed-in');
+      redirect();
+    } else {
+      document.body.classList.remove('ct-signed-in');
+    }
   }
   function waitForAccount(){
     if(window.CloudAccount && window.CloudAccount.ready){
-      // ready is a Promise — resolve fires once auth state is known on page load
-      window.CloudAccount.ready.then(checkAndRedirect);
-      // Also redirect immediately when user signs in via the modal
-      if(window.CloudAccount.onAuthChange){
-        window.CloudAccount.onAuthChange(function(user){
-          if(user) redirect();
-        });
-      }
+      window.CloudAccount.ready.then(function(){
+        applyAuthState(window.CloudAccount.getUser());
+      });
+      window.CloudAccount.onAuthChange && window.CloudAccount.onAuthChange(applyAuthState);
     } else {
       setTimeout(waitForAccount, 50);
     }
