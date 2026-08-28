@@ -336,3 +336,6 @@ main.hub-content{ padding-bottom:84px; }
   background:#f5d7d7;
   color:#661820;
 }
+
+/* ---------- ChurchTeams: hide Bible Parlor-only topbar items ---------- */
+#bpNotif { display: none !important; }

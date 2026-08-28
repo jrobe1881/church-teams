@@ -88,13 +88,13 @@
     // Only inject when the user has an active church membership and is not
     // already on the profile page (we don't need a self-link).
     if (!ctx.hasTeamsAccess) return;
-    if ((location.pathname || '').indexOf('/teams/profile') === 0) return;
+    if ((location.pathname || '').indexOf('/profile') === 0) return;
     var slot = document.querySelector('.teams-subbar-actions');
     if (!slot) return;
     if (slot.querySelector('[data-teams-profile-link]')) return;
     var a = document.createElement('a');
     a.className = 'teams-btn teams-btn-sm teams-btn-secondary';
-    a.href = '/teams/profile/';
+    a.href = '/profile/';
     a.textContent = 'Profile';
     a.setAttribute('data-teams-profile-link', '1');
     slot.appendChild(a);
@@ -131,7 +131,7 @@
           '<span class="teams-empty-glyph" aria-hidden="true">\u2756</span>' +
           '<h2>Teams access needed</h2>' +
           '<p>You need an active church membership to view this page.</p>' +
-          '<a class="teams-btn" href="/teams/">Go to Teams</a>' +
+          '<a class="teams-btn" href="/">Go to Teams</a>' +
         '</div>';
       return false;
     }
@@ -141,7 +141,7 @@
           '<span class="teams-empty-glyph" aria-hidden="true">\u2756</span>' +
           '<h2>Admins only</h2>' +
           '<p>This page is only available to church admins.</p>' +
-          '<a class="teams-btn" href="/teams/">Go to Teams</a>' +
+          '<a class="teams-btn" href="/">Go to Teams</a>' +
         '</div>';
       return false;
     }
@@ -150,16 +150,16 @@
 
   function bottomTabs(activeKey){
     var tabs = [
-      { key:'dashboard', label:'Dashboard', glyph:'\u2756', href:'/teams/' },
-      { key:'students',  label:'Prospects',  glyph:'\u25A4', href:'/teams/students/' },
-      { key:'schedule',  label:'Schedule',  glyph:'\u25F7', href:'/teams/schedule/' },
-      { key:'notices',   label:'Notices',   glyph:'\u25A3', href:'/teams/notices/' },
-      { key:'sop',       label:'SOP',       glyph:'\u2637', href:'/teams/sop/' },
-      { key:'tasks',     label:'Tasks',     glyph:'\u2611', href:'/teams/tasks/' }
+      { key:'dashboard', label:'Dashboard', glyph:'\u2756', href:'/' },
+      { key:'students',  label:'Prospects',  glyph:'\u25A4', href:'/students/' },
+      { key:'schedule',  label:'Schedule',  glyph:'\u25F7', href:'/schedule/' },
+      { key:'notices',   label:'Notices',   glyph:'\u25A3', href:'/notices/' },
+      { key:'sop',       label:'SOP',       glyph:'\u2637', href:'/sop/' },
+      { key:'tasks',     label:'Tasks',     glyph:'\u2611', href:'/tasks/' }
     ];
     // Church admins see an extra Admin tab (only visible to admins).
     if (ctx.isChurchAdmin) {
-      tabs.push({ key:'admin', label:'Admin', glyph:'\u25C8', href:'/teams/admin/' });
+      tabs.push({ key:'admin', label:'Admin', glyph:'\u25C8', href:'/admin/' });
     }
     var html = '<nav class="teams-tabbar" aria-label="Teams navigation">' + tabs.map(function(t){
       var cur = t.key === activeKey;

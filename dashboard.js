@@ -119,13 +119,13 @@
       var pending = showPending ? results[i++] : null;
 
       var html = '<div class="teams-grid">';
-      html += cardLink('/teams/students/', newIntakes, 'New Intakes Awaiting Contact', 'Reach out within the follow-up window');
-      html += cardLink('/teams/students/', activeStudents, 'Active Prospects', 'Currently in ongoing study');
-      html += cardLink('/teams/admin/', activeTeachers, 'Active Teachers', 'Serving this church');
-      html += cardLink('/teams/tasks/', overdue, 'Overdue Follow-ups', 'Past their due date', overdue > 0 ? 'is-overdue' : '');
-      html += cardLink('/teams/schedule/', weekEvents, 'This-Week Events', 'Studies, cultivation & baptisms');
-      if (showBaptisms) html += cardLink('/teams/baptisms/', baptisms, 'Upcoming Baptisms', 'Planned or confirmed');
-      if (showPending) html += cardLink('/teams/admin/#pending', pending, 'Pending Approvals', pending > 0 ? 'Awaiting your review' : 'No requests waiting', pending > 0 ? 'is-pending' : '');
+      html += cardLink('/students/', newIntakes, 'New Intakes Awaiting Contact', 'Reach out within the follow-up window');
+      html += cardLink('/students/', activeStudents, 'Active Prospects', 'Currently in ongoing study');
+      html += cardLink('/admin/', activeTeachers, 'Active Teachers', 'Serving this church');
+      html += cardLink('/tasks/', overdue, 'Overdue Follow-ups', 'Past their due date', overdue > 0 ? 'is-overdue' : '');
+      html += cardLink('/schedule/', weekEvents, 'This-Week Events', 'Studies, cultivation & baptisms');
+      if (showBaptisms) html += cardLink('/baptisms/', baptisms, 'Upcoming Baptisms', 'Planned or confirmed');
+      if (showPending) html += cardLink('/admin/#pending', pending, 'Pending Approvals', pending > 0 ? 'Awaiting your review' : 'No requests waiting', pending > 0 ? 'is-pending' : '');
       html += '</div>';
       root.innerHTML = html;
     });
@@ -139,7 +139,7 @@
     var rec = null;
     try { rec = JSON.parse(raw); } catch(e){}
     if (!rec || !rec.slug) return;
-    var link = 'bibleparlor.com/teams/join/?slug=' + rec.slug;
+    var link = 'churchteams.tech/join/?slug=' + rec.slug;
     var toast = document.createElement('div');
     toast.className = 'teams-toast';
     toast.innerHTML = 'Church registered. Share your invite link: ' + link + ' <button type="button" class="teams-btn teams-btn-sm teams-btn-secondary" id="toastCopyBtn" style="margin-left:8px">Copy</button>';

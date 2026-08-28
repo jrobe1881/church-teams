@@ -20,6 +20,7 @@
 
 (function(){
   if (window.__BshTopbarMounted) return;
+  if (window.__BshTopbarSuppress) return;
   window.__BshTopbarMounted = true;
 
   /* Canonical tool list. Order matters — this is the reading order for the

@@ -43,10 +43,10 @@ document.head.appendChild(s);
 }
 }catch(e){}})();</script>
 
-<title>Profile — Teams — Bible Parlor</title>
-<meta name="description" content="Edit your display name for Teams." />
-<link rel="canonical" href="https://bibleparlor.com/teams/profile/" />
-<meta name="robots" content="noindex, nofollow" />
+<title>Teams — Bible Parlor</title>
+<meta name="description" content="Teams is the private church study-team dashboard on Bible Parlor: track intakes, follow-ups, cultivation, sessions, notices, and baptisms." />
+<link rel="canonical" href="https://bibleparlor.com/teams/" />
+<meta name="robots" content="noindex, follow" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -73,12 +73,13 @@ document.head.appendChild(s);
 </header>
 
 <div class="teams-subbar">
-  <h1><a href="/dashboard/" class="teams-back-link" aria-label="Back to Teams">‹</a> Profile</h1>
-  <div class="teams-subbar-actions"></div>
+  <h1 data-i18n="nav.teams">Teams</h1>
+  <div class="teams-subbar-actions" id="teamsSubbarActions"></div>
 </div>
 
 <main class="hub-content" id="mainContent">
-  <div class="teams-page" id="profileRoot">
+  <div class="teams-page" id="teamsRoot">
+    <div class="skeleton teams-skel-card" style="margin-bottom:12px"></div>
     <div class="skeleton teams-skel-card" style="margin-bottom:12px"></div>
     <div class="skeleton teams-skel-card"></div>
   </div>
@@ -98,6 +99,7 @@ document.head.appendChild(s);
 <script src="/time-picker.js?v=1"></script>
 <script src="/teams.js?v=5"></script>
 <script src="/languages.js?v=1"></script>
-<script src="/profile/profile.js?v=5"></script>
+<script src="/join/join.js?v=1"></script>
+<script src="/dashboard.js?v=2"></script>
 </body>
 </html>
