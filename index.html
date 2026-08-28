@@ -43,10 +43,9 @@ document.head.appendChild(s);
 }
 }catch(e){}})();</script>
 
-<title>Teams — Bible Parlor</title>
-<meta name="description" content="Teams is the private church study-team dashboard on Bible Parlor: track intakes, follow-ups, cultivation, sessions, notices, and baptisms." />
-<link rel="canonical" href="https://bibleparlor.com/teams/" />
-<meta name="robots" content="noindex, follow" />
+<title>ChurchTeams — Organize your church. Disciple your people.</title>
+<meta name="description" content="ChurchTeams helps churches track Bible studies, follow-ups, cultivation, and baptisms — all in one private dashboard for your team." />
+<link rel="canonical" href="https://churchteams.tech/" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -54,51 +53,373 @@ document.head.appendChild(s);
 
 <link rel="stylesheet" href="/shared/tokens.css?v=8"/>
 <link rel="stylesheet" href="/shared/hub-chrome.css?v=30"/>
-<link rel="stylesheet" href="/shared/hub-modern.css?v=9"/>
-<link rel="stylesheet" href="/teams.css?v=6"/>
+
+<style>
+/* ── Landing-specific styles ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:var(--font-sans);
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Nav */
+.ct-nav{
+  position:sticky; top:0; z-index:900;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  padding:0 var(--s-6);
+  display:flex; align-items:center; justify-content:space-between;
+  height:56px;
+}
+.ct-nav-brand{
+  display:flex; align-items:center; gap:var(--s-2);
+  text-decoration:none; color:var(--ink);
+  font-family:var(--font-serif); font-size:var(--t-lg); font-weight:500;
+}
+.ct-nav-brand-glyph{
+  color:var(--accent); font-size:1.3rem; line-height:1;
+}
+.ct-nav-actions{
+  display:flex; align-items:center; gap:var(--s-3);
+}
+.ct-btn-ghost{
+  background:none; border:1px solid var(--border); color:var(--ink);
+  border-radius:var(--r-md); padding:8px 16px;
+  font-family:var(--font-sans); font-size:var(--t-sm); font-weight:500;
+  cursor:pointer; text-decoration:none; display:inline-flex; align-items:center;
+  min-height:38px; transition:border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
+}
+.ct-btn-ghost:hover{ border-color:var(--border-strong); background:var(--surface-2); }
+.ct-btn-primary{
+  background:var(--accent); color:#fff; border:none;
+  border-radius:var(--r-md); padding:8px 20px;
+  font-family:var(--font-sans); font-size:var(--t-sm); font-weight:600;
+  cursor:pointer; text-decoration:none; display:inline-flex; align-items:center;
+  min-height:38px; transition:background var(--dur-1) var(--ease);
+}
+.ct-btn-primary:hover{ background:var(--accent-hover); }
+
+/* Hero */
+.ct-hero{
+  max-width:760px; margin:0 auto;
+  padding:80px var(--s-6) 72px;
+  text-align:center;
+}
+.ct-hero-eyebrow{
+  display:inline-block;
+  font-size:var(--t-xs); font-weight:600; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--accent); background:var(--accent-tint);
+  padding:4px 12px; border-radius:var(--r-pill);
+  margin-bottom:var(--s-5);
+}
+.ct-hero h1{
+  font-family:var(--font-serif); font-size:clamp(2rem, 5vw, 3.2rem);
+  font-weight:500; line-height:1.2;
+  color:var(--ink); margin-bottom:var(--s-5);
+}
+.ct-hero h1 em{
+  font-style:italic; color:var(--accent);
+}
+.ct-hero-sub{
+  font-size:var(--t-lg); color:var(--ink-2); line-height:1.65;
+  max-width:560px; margin:0 auto var(--s-8);
+}
+.ct-hero-cta{
+  display:flex; align-items:center; justify-content:center; gap:var(--s-3); flex-wrap:wrap;
+}
+.ct-btn-hero{
+  background:var(--accent); color:#fff; border:none;
+  border-radius:var(--r-md); padding:14px 32px;
+  font-family:var(--font-sans); font-size:var(--t-md); font-weight:600;
+  cursor:pointer; text-decoration:none; display:inline-flex; align-items:center;
+  min-height:50px; transition:background var(--dur-1) var(--ease);
+}
+.ct-btn-hero:hover{ background:var(--accent-hover); }
+.ct-btn-hero-ghost{
+  background:none; border:1px solid var(--border); color:var(--ink);
+  border-radius:var(--r-md); padding:14px 28px;
+  font-family:var(--font-sans); font-size:var(--t-md); font-weight:500;
+  cursor:pointer; text-decoration:none; display:inline-flex; align-items:center;
+  min-height:50px; transition:border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
+}
+.ct-btn-hero-ghost:hover{ border-color:var(--border-strong); background:var(--surface-2); }
+
+/* Divider */
+.ct-divider{
+  border:none; border-top:1px solid var(--border); margin:0;
+}
+
+/* Features */
+.ct-features{
+  max-width:900px; margin:0 auto;
+  padding:72px var(--s-6);
+}
+.ct-section-label{
+  text-align:center;
+  font-size:var(--t-xs); font-weight:600; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--ink-3); margin-bottom:var(--s-4);
+}
+.ct-section-heading{
+  text-align:center;
+  font-family:var(--font-serif); font-size:clamp(1.5rem, 3.5vw, 2.2rem);
+  font-weight:500; line-height:1.3;
+  color:var(--ink); margin-bottom:var(--s-3);
+}
+.ct-section-sub{
+  text-align:center;
+  font-size:var(--t-md); color:var(--ink-2); max-width:520px;
+  margin:0 auto var(--s-10);
+}
+.ct-features-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:var(--s-5);
+}
+@media(max-width:720px){
+  .ct-features-grid{ grid-template-columns:1fr; }
+}
+@media(min-width:521px) and (max-width:720px){
+  .ct-features-grid{ grid-template-columns:1fr 1fr; }
+}
+.ct-feature-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg);
+  padding:var(--s-5);
+}
+.ct-feature-icon{
+  font-size:1.5rem; line-height:1; margin-bottom:var(--s-3);
+  color:var(--accent);
+}
+.ct-feature-card h3{
+  font-family:var(--font-sans); font-weight:600; font-size:var(--t-md);
+  color:var(--ink); margin-bottom:var(--s-2);
+}
+.ct-feature-card p{
+  font-size:var(--t-sm); color:var(--ink-2); line-height:1.6;
+}
+
+/* Pricing */
+.ct-pricing{
+  max-width:760px; margin:0 auto;
+  padding:72px var(--s-6);
+}
+.ct-pricing-card{
+  background:var(--surface); border:2px solid var(--accent); border-radius:var(--r-xl);
+  padding:var(--s-8) var(--s-8);
+  display:flex; align-items:center; justify-content:space-between; gap:var(--s-6);
+  flex-wrap:wrap;
+}
+.ct-pricing-left{}
+.ct-pricing-badge{
+  display:inline-block;
+  font-size:var(--t-xs); font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+  color:#fff; background:var(--accent);
+  padding:3px 10px; border-radius:var(--r-pill);
+  margin-bottom:var(--s-4);
+}
+.ct-pricing-price{
+  font-family:var(--font-serif); font-size:3.5rem; font-weight:500; line-height:1;
+  color:var(--ink); margin-bottom:var(--s-3);
+}
+.ct-pricing-price span{
+  font-size:var(--t-lg); color:var(--ink-3); font-family:var(--font-sans); font-weight:400;
+}
+.ct-pricing-desc{
+  font-size:var(--t-sm); color:var(--ink-2); max-width:340px; line-height:1.6;
+}
+.ct-pricing-features{
+  list-style:none; margin:var(--s-5) 0 0;
+}
+.ct-pricing-features li{
+  font-size:var(--t-sm); color:var(--ink-2); padding:var(--s-2) 0;
+  border-bottom:1px solid var(--border); display:flex; align-items:center; gap:var(--s-2);
+}
+.ct-pricing-features li:last-child{ border-bottom:none; }
+.ct-pricing-features li::before{
+  content:"✓"; color:var(--accent); font-weight:700; flex-shrink:0;
+}
+.ct-pricing-right{
+  display:flex; flex-direction:column; align-items:flex-start; gap:var(--s-3); flex-shrink:0;
+}
+@media(max-width:600px){
+  .ct-pricing-card{ padding:var(--s-6) var(--s-5); }
+  .ct-pricing-right{ width:100%; }
+  .ct-btn-hero,.ct-btn-hero-ghost{ width:100%; justify-content:center; }
+}
+
+/* Footer */
+.ct-footer{
+  border-top:1px solid var(--border);
+  padding:var(--s-8) var(--s-6);
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:var(--s-4);
+  max-width:900px; margin:0 auto;
+}
+.ct-footer-brand{
+  display:flex; align-items:center; gap:var(--s-2);
+  font-family:var(--font-serif); font-size:var(--t-md); color:var(--ink-2);
+  text-decoration:none;
+}
+.ct-footer-brand-glyph{ color:var(--accent); }
+.ct-footer-links{
+  display:flex; align-items:center; gap:var(--s-5); flex-wrap:wrap;
+}
+.ct-footer-links a{
+  font-size:var(--t-sm); color:var(--ink-3); text-decoration:none;
+  transition:color var(--dur-1) var(--ease);
+}
+.ct-footer-links a:hover{ color:var(--ink); }
+.ct-footer-copy{
+  font-size:var(--t-xs); color:var(--ink-muted); width:100%;
+}
+@media(max-width:600px){
+  .ct-footer{ flex-direction:column; align-items:flex-start; }
+}
+
+/* Theme toggle button in nav */
+#btnTheme{
+  background:none; border:1px solid var(--border); color:var(--ink);
+  border-radius:var(--r-md); width:38px; height:38px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:1rem;
+  transition:border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
+}
+#btnTheme:hover{ border-color:var(--border-strong); background:var(--surface-2); }
+</style>
 </head>
-<body class="hub-body" data-tool="teams">
+<body>
 
-<header class="hub-topbar">
-  <div class="hub-tb-l">
-    <a href="/" class="hub-brand-mark" title="Teams home" aria-label="Teams home"><span class="hub-brand-glyph">❖</span><span class="hub-brand-name">Teams</span></a>
+<!-- Nav -->
+<nav class="ct-nav">
+  <a href="/" class="ct-nav-brand">
+    <span class="ct-nav-brand-glyph">❖</span>
+    ChurchTeams
+  </a>
+  <div class="ct-nav-actions">
+    <button id="btnTheme" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    <a href="/join/" class="ct-btn-ghost">Sign in</a>
+    <a href="/register/" class="ct-btn-primary">Get started</a>
   </div>
-  <div class="hub-tb-c">
-    <button class="hub-icon-btn hub-qj-center" data-quickjump title="Search (⌘K)" aria-label="Search">⌕</button>
-  </div>
-  <div class="hub-tb-r">
-    <button class="hub-icon-btn" id="btnTheme" title="Theme" aria-label="Toggle theme">◐</button>
-    <span id="acctSlot"></span>
-  </div>
-</header>
+</nav>
 
-<div class="teams-subbar">
-  <h1 data-i18n="nav.teams">Teams</h1>
-  <div class="teams-subbar-actions" id="teamsSubbarActions"></div>
-</div>
-
-<main class="hub-content" id="mainContent">
-  <div class="teams-page" id="teamsRoot">
-    <div class="skeleton teams-skel-card" style="margin-bottom:12px"></div>
-    <div class="skeleton teams-skel-card" style="margin-bottom:12px"></div>
-    <div class="skeleton teams-skel-card"></div>
+<!-- Hero -->
+<section class="ct-hero">
+  <span class="ct-hero-eyebrow">Free for churches</span>
+  <h1>Organize your church.<br><em>Disciple your people.</em></h1>
+  <p class="ct-hero-sub">A private dashboard for your church team to track Bible studies, follow-ups, cultivation visits, sessions, and baptisms — all in one place.</p>
+  <div class="ct-hero-cta">
+    <a href="/register/" class="ct-btn-hero">Register your church</a>
+    <a href="/join/" class="ct-btn-hero-ghost">Sign in</a>
   </div>
-</main>
+</section>
 
-<div id="teamsTabbarSlot"></div>
+<hr class="ct-divider" />
+
+<!-- Features -->
+<section class="ct-features">
+  <p class="ct-section-label">What's inside</p>
+  <h2 class="ct-section-heading">Everything your team needs</h2>
+  <p class="ct-section-sub">Built for church leaders who want to stay organized without the complexity of enterprise software.</p>
+
+  <div class="ct-features-grid">
+    <div class="ct-feature-card">
+      <div class="ct-feature-icon">📖</div>
+      <h3>Bible Studies</h3>
+      <p>Track every prospect and study participant from first contact through baptism. See where everyone is in the process at a glance.</p>
+    </div>
+    <div class="ct-feature-card">
+      <div class="ct-feature-icon">🔁</div>
+      <h3>Follow-ups</h3>
+      <p>Log calls, visits, and messages. Set due dates and get notified when follow-ups are overdue so no one falls through the cracks.</p>
+    </div>
+    <div class="ct-feature-card">
+      <div class="ct-feature-icon">🌱</div>
+      <h3>Cultivation</h3>
+      <p>Track cultivation contacts — people not yet in a study but being nurtured. Move them forward when the time is right.</p>
+    </div>
+    <div class="ct-feature-card">
+      <div class="ct-feature-icon">📅</div>
+      <h3>Sessions & Schedule</h3>
+      <p>Schedule study sessions and team meetings. Your whole team sees the same calendar so everyone is coordinated.</p>
+    </div>
+    <div class="ct-feature-card">
+      <div class="ct-feature-icon">📢</div>
+      <h3>Notices</h3>
+      <p>Post pinned announcements for your team. Important updates stay visible until dismissed.</p>
+    </div>
+    <div class="ct-feature-card">
+      <div class="ct-feature-icon">💧</div>
+      <h3>Baptism Records</h3>
+      <p>Log baptisms with dates and notes. Keep a clean record of every new disciple added to your congregation.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="ct-divider" />
+
+<!-- Pricing -->
+<section class="ct-pricing">
+  <p class="ct-section-label">Pricing</p>
+  <h2 class="ct-section-heading">Free. No catch.</h2>
+  <p class="ct-section-sub" style="margin-bottom:var(--s-8)">ChurchTeams is completely free for any church. We believe discipleship tools shouldn't cost money.</p>
+
+  <div class="ct-pricing-card">
+    <div class="ct-pricing-left">
+      <span class="ct-pricing-badge">Free forever</span>
+      <div class="ct-pricing-price">$0 <span>/ month</span></div>
+      <p class="ct-pricing-desc">Everything included for your entire team. No per-seat fees, no upgrade prompts, no expiry.</p>
+      <ul class="ct-pricing-features">
+        <li>Unlimited team members</li>
+        <li>Unlimited prospects & studies</li>
+        <li>Follow-up tracking & reminders</li>
+        <li>Sessions, notices & baptism records</li>
+        <li>Multi-language support</li>
+      </ul>
+    </div>
+    <div class="ct-pricing-right">
+      <a href="/register/" class="ct-btn-hero">Register your church</a>
+      <a href="/join/" class="ct-btn-hero-ghost">Sign in to existing team</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="ct-footer">
+    <a href="/" class="ct-footer-brand">
+      <span class="ct-footer-brand-glyph">❖</span>
+      ChurchTeams
+    </a>
+    <nav class="ct-footer-links">
+      <a href="/register/">Register</a>
+      <a href="/join/">Sign in</a>
+      <a href="https://bibleparlor.com" target="_blank" rel="noopener">Bible Parlor</a>
+    </nav>
+    <p class="ct-footer-copy">© 2025 ChurchTeams · Powered by Bible Parlor</p>
+  </div>
+</footer>
 
 <script src="/shared/safe-storage.js?v=2"></script>
 <script src="/shared/theme.js?v=17"></script>
-<script src="/shared/i18n.js?v=1"></script>
-<script src="/shared/topbar.js?v=20" defer></script>
-<script src="/shared/icons.js?v=1" defer></script>
 <script src="/shared/account.js?v=25"></script>
-<script src="/shared/hub-chrome.js?v=6"></script>
-<script src="/shared/quick-jump.js?v=20"></script>
-<script src="/time-picker.js?v=1"></script>
-<script src="/teams.js?v=5"></script>
-<script src="/languages.js?v=1"></script>
-<script src="/join/join.js?v=1"></script>
-<script src="/dashboard.js?v=2"></script>
+<script>
+// Redirect logged-in users straight to the dashboard
+(function(){
+  function checkAndRedirect(){
+    if(window.CloudAccount && window.CloudAccount.isSignedIn()){
+      window.location.replace('/dashboard');
+    }
+  }
+  function waitForAccount(){
+    if(window.CloudAccount && typeof window.CloudAccount.ready === 'function'){
+      window.CloudAccount.ready(checkAndRedirect);
+    } else {
+      setTimeout(waitForAccount, 50);
+    }
+  }
+  waitForAccount();
+})();
+</script>
 </body>
 </html>
