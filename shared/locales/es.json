@@ -424,7 +424,7 @@
   "resetpw.label.confirm": "Confirmar contraseña",
   "resetpw.btn.submit": "Actualizar contraseña",
   "resetpw.btn.updating": "Actualizando\u2026",
-  "resetpw.back": "Volver a Bible Parlor",
+  "resetpw.back": "Volver a ChurchTeams",
   "resetpw.form.sub": "Ingresa una nueva contraseña para tu cuenta. Iniciarás sesión automáticamente.",
   "resetpw.blocked.title": "Problema con el enlace de restablecimiento",
   "resetpw.err.short": "La contraseña debe tener al menos 6 caracteres.",

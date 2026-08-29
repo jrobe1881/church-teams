@@ -94,7 +94,7 @@
 
   function renderHeader(){
     var s = state.student;
-    document.title = (s.full_name || 'Prospect') + ' \u2014 Teams \u2014 Bible Parlor';
+    document.title = (s.full_name || 'Prospect') + ' \u2014 ChurchTeams';
     var contact = [];
     if (s.phone) contact.push('<a class="teams-contact-icon" href="tel:' + esc(s.phone) + '" aria-label="Call">\u260E</a>');
     if (s.email) contact.push('<a class="teams-contact-icon" href="mailto:' + esc(s.email) + '" aria-label="Email">\u2709</a>');
