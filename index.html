@@ -266,8 +266,9 @@ body{
   <p class="ct-hero-sub">A private dashboard for your church team to track Bible studies, follow-ups, cultivation visits, sessions, and baptisms — all in one place.</p>
   <div class="ct-hero-cta">
     <a href="/register/" class="ct-btn-hero">Register your church</a>
-    <button type="button" class="ct-btn-hero-ghost" id="heroSignInBtn">Sign in</button>
+    <a href="/join/" class="ct-btn-hero-ghost">Join your church</a>
   </div>
+  <p style="margin-top:var(--s-4);font-size:var(--t-sm);color:var(--ink-3)">Already have an account? <button type="button" class="ct-footer-sign-in" id="heroSignInBtn">Sign in</button></p>
 </section>
 
 <hr class="ct-divider" />
@@ -335,7 +336,7 @@ body{
     </div>
     <div class="ct-pricing-right">
       <a href="/register/" class="ct-btn-hero">Register your church</a>
-      <button type="button" class="ct-btn-hero-ghost" id="pricingSignInBtn">Sign in to existing team</button>
+      <a href="/join/" class="ct-btn-hero-ghost">Join your church</a>
     </div>
   </div>
 </section>
@@ -349,6 +350,7 @@ body{
     </a>
     <nav class="ct-footer-links">
       <a href="/register/">Register</a>
+      <a href="/join/">Join</a>
       <button type="button" class="ct-footer-sign-in" id="footerSignInBtn">Sign in</button>
       <a href="https://bibleparlor.com" target="_blank" rel="noopener">Bible Parlor</a>
     </nav>
@@ -363,7 +365,7 @@ body{
 (function(){
   /* Wire all "Sign in" buttons to open the CloudAccount modal. */
   function wireSignInBtns(){
-    ['heroSignInBtn','pricingSignInBtn','footerSignInBtn'].forEach(function(id){
+    ['heroSignInBtn','footerSignInBtn'].forEach(function(id){
       var el = document.getElementById(id);
       if (el) el.addEventListener('click', function(){
         if (window.CloudAccount) window.CloudAccount.openModal('signin');
