@@ -16,7 +16,17 @@
     document.getElementById('newNoticeBtn').addEventListener('click', openComposer);
   }
 
-  function fmtDate(d){ return d ? new Date(d).toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : ''; }
+  function fmtDate(d){
+    if (!d) return '';
+    var date = new Date(d);
+    var now = new Date();
+    var diffMs = now - date;
+    var diffDays = Math.floor(diffMs / 86400000);
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return diffDays + ' days ago';
+    return date.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+  }
 
   function load(){
     var sb = window.TeamsCtx.sb;
@@ -32,16 +42,18 @@
   }
 
   function noticeCard(n){
-    var deleteBtn = canManage()
-      ? '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-delete-notice="' + esc(n.id) + '" type="button" style="color:var(--accent);border-color:var(--accent);background:transparent;margin-top:var(--s-2)">Delete</button>'
+    var adminActions = canManage()
+      ? '<div class="teams-notice-actions" data-notice-id="' + esc(n.id) + '">' +
+          '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-delete-notice="' + esc(n.id) + '" type="button" style="color:var(--accent);border-color:var(--accent);background:transparent">Delete</button>' +
+        '</div>'
       : '';
-    return '<div class="teams-card" style="margin-bottom:var(--s-3)" data-notice-id="' + esc(n.id) + '">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:var(--s-2)">' +
+    return '<div class="teams-card" style="margin-bottom:var(--s-3)">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-2)">' +
         '<strong>' + esc(n.title || 'Notice') + '</strong>' +
-        '<span class="teams-card-desc">' + esc(fmtDate(n.created_at)) + '</span>' +
+        '<span class="teams-card-desc" style="white-space:nowrap;flex-shrink:0">' + esc(fmtDate(n.created_at)) + '</span>' +
       '</div>' +
       (n.body ? '<div class="teams-card-desc" style="margin-top:6px;white-space:pre-wrap">' + esc(n.body) + '</div>' : '') +
-      deleteBtn +
+      (canManage() ? '<div style="margin-top:var(--s-2)">' + adminActions + '</div>' : '') +
     '</div>';
   }
 
@@ -50,19 +62,32 @@
     Array.prototype.forEach.call(root.querySelectorAll('[data-delete-notice]'), function(btn){
       btn.addEventListener('click', function(){
         var id = btn.getAttribute('data-delete-notice');
-        var card = btn.closest('[data-notice-id]');
-        var titleEl = card && card.querySelector('strong');
-        var title = (titleEl && titleEl.textContent) || 'this notice';
-        if (!window.confirm('Delete “' + title + '”? This cannot be undone.')) return;
-        btn.disabled = true; btn.textContent = 'Deleting\u2026';
-        window.TeamsCtx.sb.from('bst_notices').delete().eq('id', id).then(function(res){
-          if (res.error){
-            btn.disabled = false; btn.textContent = 'Delete';
-            alert('Could not delete: ' + (res.error.message || 'permission denied'));
-            return;
-          }
-          state.notices = state.notices.filter(function(x){ return x.id !== id; });
-          render();
+        var actionsWrap = btn.closest('.teams-notice-actions');
+        // Replace the button with an inline confirm
+        actionsWrap.innerHTML =
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+            '<span class="teams-card-desc" style="font-size:var(--t-xs)">Delete this notice?</span>' +
+            '<button class="teams-btn teams-btn-sm teams-btn-danger" data-confirm-delete="' + esc(id) + '" type="button">Yes, delete</button>' +
+            '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-cancel-delete type="button">Cancel</button>' +
+          '</div>';
+        actionsWrap.querySelector('[data-cancel-delete]').addEventListener('click', function(){ render(); });
+        actionsWrap.querySelector('[data-confirm-delete]').addEventListener('click', function(){
+          var confirmBtn = actionsWrap.querySelector('[data-confirm-delete]');
+          confirmBtn.disabled = true; confirmBtn.textContent = 'Deleting\u2026';
+          window.TeamsCtx.sb.from('bst_notices').delete().eq('id', id).then(function(res){
+            if (res.error){
+              render();
+              // Show a brief error toast
+              var toast = document.createElement('div');
+              toast.className = 'teams-toast show';
+              toast.textContent = 'Could not delete: ' + (res.error.message || 'permission denied');
+              document.body.appendChild(toast);
+              setTimeout(function(){ toast.classList.remove('show'); setTimeout(function(){ toast.remove(); }, 300); }, 3000);
+              return;
+            }
+            state.notices = state.notices.filter(function(x){ return x.id !== id; });
+            render();
+          });
         });
       });
     });

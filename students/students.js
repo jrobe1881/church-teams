@@ -11,7 +11,7 @@
     active: 'Active', paused: 'Paused', baptized: 'Baptized', dropped: 'Dropped'
   };
 
-  var state = { students: [], teachers: [], search: '', statusFilter: 'all', teacherFilter: 'all' };
+  var state = { students: [], teachers: [], search: '', statusFilter: 'all', teacherFilter: 'all', sortBy: 'newest' };
 
   function renderActions(){
     actionsEl.innerHTML = '<button class="teams-btn teams-btn-sm" id="intakeBtn" type="button">+ New Prospect</button>';
@@ -37,16 +37,30 @@
   }
 
   function filtered(){
-    return state.students.filter(function(s){
+    var rows = state.students.filter(function(s){
       if (state.statusFilter !== 'all' && s.status !== state.statusFilter) return false;
       if (state.teacherFilter !== 'all' && s.assigned_teacher_id !== state.teacherFilter) return false;
       if (state.search) {
         var q = state.search.toLowerCase();
-        if ((s.full_name || '').toLowerCase().indexOf(q) === -1) return false;
+        var teacherN = teacherName(s.assigned_teacher_id).toLowerCase();
+        if ((s.full_name || '').toLowerCase().indexOf(q) === -1 && teacherN.indexOf(q) === -1) return false;
       }
       return true;
     });
+    if (state.sortBy === 'alpha') {
+      rows = rows.slice().sort(function(a, b){ return (a.full_name || '').localeCompare(b.full_name || ''); });
+    } else if (state.sortBy === 'status') {
+      var ORDER = { new_intake:0, prospect:1, cultivating:2, active:3, paused:4, baptized:5, dropped:6 };
+      rows = rows.slice().sort(function(a, b){ return (ORDER[a.status] || 0) - (ORDER[b.status] || 0); });
+    }
+    // default 'newest' preserves the server order (created_at DESC)
+    return rows;
   }
+
+  var STATUS_CHIP_CLASS = {
+    new_intake: 'is-info', prospect: 'is-neutral', cultivating: 'is-warn',
+    active: 'is-success', paused: 'is-neutral', baptized: 'is-success', dropped: 'is-neutral'
+  };
 
   function studentRow(s){
     var langChip = '';
@@ -55,11 +69,12 @@
       var speaks = t && Array.isArray(t.languages) && t.languages.map(function(l){ return String(l).toLowerCase(); }).indexOf(String(s.preferred_language).toLowerCase()) !== -1;
       langChip = '<span class="teams-lang-badge ' + (speaks ? 'teams-lang-match' : (s.assigned_teacher_id ? 'teams-lang-missing' : '')) + '">' + esc(window.TeamsLanguages.labelOf(s.preferred_language)) + '</span>';
     }
-    return '<a class="teams-row" href="/teams/student/?id=' + esc(s.id) + '">' +
+    var chipClass = STATUS_CHIP_CLASS[s.status] || 'is-neutral';
+    return '<a class="teams-row" href="/student/?id=' + esc(s.id) + '">' +
       '<div style="flex:1;min-width:0">' +
         '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
           '<strong style="font-size:var(--t-sm)">' + esc(s.full_name) + '</strong>' +
-          '<span class="teams-chip is-neutral">' + esc(STATUS_LABELS[s.status] || s.status) + '</span>' +
+          '<span class="teams-chip ' + chipClass + '">' + esc(STATUS_LABELS[s.status] || s.status) + '</span>' +
           langChip +
         '</div>' +
         '<div class="teams-card-desc" style="margin-top:4px">' + esc(teacherName(s.assigned_teacher_id) || 'Unassigned') + '</div>' +
@@ -68,13 +83,18 @@
     '</a>';
   }
 
-  function renderFilters(){
+  function renderFilters(count, total){
     var statuses = ['all'].concat(Object.keys(STATUS_LABELS));
-    return '<div style="display:flex;gap:var(--s-3);flex-wrap:wrap;margin-bottom:var(--s-4)">' +
-      '<input type="search" id="studentSearch" placeholder="Search prospects" value="' + esc(state.search) + '" style="flex:1;min-width:180px" />' +
+    var hasFilter = state.search || state.statusFilter !== 'all' || state.teacherFilter !== 'all';
+    var clearBtn = hasFilter ? '<button class="teams-btn teams-btn-sm teams-btn-secondary" id="clearFiltersBtn" type="button" style="white-space:nowrap">Clear filters</button>' : '';
+    return '<div style="display:flex;gap:var(--s-3);flex-wrap:wrap;margin-bottom:var(--s-3);align-items:center">' +
+      '<input type="search" id="studentSearch" placeholder="Search prospects\u2026" value="' + esc(state.search) + '" style="flex:1;min-width:180px" />' +
       '<select id="statusFilter">' + statuses.map(function(st){ return '<option value="' + st + '"' + (state.statusFilter === st ? ' selected' : '') + '>' + (st === 'all' ? 'All statuses' : esc(STATUS_LABELS[st])) + '</option>'; }).join('') + '</select>' +
       '<select id="teacherFilter"><option value="all">All teachers</option>' + state.teachers.map(function(t){ return '<option value="' + esc(t.id) + '"' + (state.teacherFilter === t.id ? ' selected' : '') + '>' + esc(t.full_name) + '</option>'; }).join('') + '</select>' +
-    '</div>';
+      '<select id="sortFilter"><option value="newest"' + (state.sortBy === 'newest' ? ' selected' : '') + '>Newest</option><option value="alpha"' + (state.sortBy === 'alpha' ? ' selected' : '') + '>A–Z</option><option value="status"' + (state.sortBy === 'status' ? ' selected' : '') + '>By status</option></select>' +
+      clearBtn +
+    '</div>' +
+    '<p class="teams-result-count">' + (hasFilter ? count + ' of ' + total : total) + ' prospect' + (total === 1 ? '' : 's') + '</p>';
   }
 
   function render(){
@@ -82,12 +102,27 @@
     var rows = filtered();
     var body = rows.length
       ? rows.map(studentRow).join('')
-      : '<div class="teams-empty"><span class="teams-empty-glyph" aria-hidden="true">\u25F7</span><h2>No prospects found</h2><p>Try a different filter, or add a new prospect.</p></div>';
-    root.innerHTML = renderFilters() + '<div>' + body + '</div>';
+      : '<div class="teams-empty"><span class="teams-empty-glyph" aria-hidden="true">\u25A4</span><h2>No prospects found</h2><p>Try a different filter, or add a new prospect.</p>' +
+        (window.TeamsCtx.isChurchAdmin || window.TeamsCtx.isTeacher ? '<button class="teams-btn" id="emptyIntakeBtn" type="button" style="margin-top:8px">+ New Prospect</button>' : '') +
+        '</div>';
+    root.innerHTML = renderFilters(rows.length, state.students.length) + '<div>' + body + '</div>';
 
-    document.getElementById('studentSearch').addEventListener('input', function(e){ state.search = e.target.value; render(); });
+    var searchEl = document.getElementById('studentSearch');
+    searchEl.addEventListener('input', function(e){ state.search = e.target.value; render(); });
+    // Allow pressing Enter in search to focus first result link
+    searchEl.addEventListener('keydown', function(e){
+      if (e.key === 'Enter') {
+        var first = root.querySelector('a.teams-row');
+        if (first) first.focus();
+      }
+    });
     document.getElementById('statusFilter').addEventListener('change', function(e){ state.statusFilter = e.target.value; render(); });
     document.getElementById('teacherFilter').addEventListener('change', function(e){ state.teacherFilter = e.target.value; render(); });
+    document.getElementById('sortFilter').addEventListener('change', function(e){ state.sortBy = e.target.value; render(); });
+    var clearBtn = document.getElementById('clearFiltersBtn');
+    if (clearBtn) clearBtn.addEventListener('click', function(){ state.search = ''; state.statusFilter = 'all'; state.teacherFilter = 'all'; state.sortBy = 'newest'; render(); });
+    var emptyIntakeBtn = document.getElementById('emptyIntakeBtn');
+    if (emptyIntakeBtn) emptyIntakeBtn.addEventListener('click', openIntakeSheet);
   }
 
   function overlay(innerHtml){

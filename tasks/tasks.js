@@ -18,11 +18,12 @@
   ];
   var STATUS_LABELS = { open: 'Open', done: 'Done', skipped: 'Skipped', snoozed: 'Snoozed', overdue: 'Overdue' };
 
-  var state = { followups: [], students: {}, filter: 'open' };
+  var state = { followups: [], students: {}, members: {}, filter: 'open' };
 
   function renderActions(){
     actionsEl.innerHTML =
       '<button class="teams-chip is-selected" data-f="open">Open</button>' +
+      '<button class="teams-chip" data-f="today">Today</button>' +
       '<button class="teams-chip" data-f="overdue">Overdue</button>' +
       '<button class="teams-chip" data-f="all">All</button>';
     Array.prototype.forEach.call(actionsEl.querySelectorAll('[data-f]'), function(btn){
@@ -43,34 +44,58 @@
     return q.then(function(res){
       state.followups = res.error ? [] : (res.data || []);
       if (res.error) { console.error('[Teams tasks] load error', res.error); return; }
-      var ids = Array.from(new Set(state.followups.map(function(f){ return f.student_id; }).filter(Boolean)));
-      if (!ids.length) return;
-      return sb.from('bst_students').select('id,full_name').in('id', ids).then(function(sres){
-        state.students = {};
-        (sres.data || []).forEach(function(s){ state.students[s.id] = s.full_name; });
-      });
+      var studentIds = Array.from(new Set(state.followups.map(function(f){ return f.student_id; }).filter(Boolean)));
+      var memberIds  = Array.from(new Set(state.followups.map(function(f){ return f.assignee_id; }).filter(Boolean)));
+      var promises = [];
+      if (studentIds.length) {
+        promises.push(sb.from('bst_students').select('id,full_name').in('id', studentIds).then(function(sres){
+          state.students = {};
+          (sres.data || []).forEach(function(s){ state.students[s.id] = s.full_name; });
+        }));
+      }
+      if (memberIds.length) {
+        promises.push(sb.from('bst_members').select('id,full_name').in('id', memberIds).then(function(mres){
+          state.members = {};
+          (mres.data || []).forEach(function(m){ state.members[m.id] = m.full_name; });
+        }));
+      }
+      return promises.length ? Promise.all(promises) : undefined;
     });
   }
 
   function filtered(){
+    var todayStr = new Date().toISOString().slice(0, 10);
     return state.followups.filter(function(f){
       if (state.filter === 'all') return true;
       if (state.filter === 'overdue') return f.status === 'overdue';
+      if (state.filter === 'today') return (f.status === 'open' || f.status === 'overdue') && f.due_date && f.due_date <= todayStr;
       return f.status === 'open' || f.status === 'overdue';
     });
   }
 
   function fmtDate(d){ return d ? new Date(d + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric' }) : ''; }
 
+  function dueDateLabel(f){
+    if (!f.due_date) return '';
+    var todayStr = new Date().toISOString().slice(0, 10);
+    var isOverdue = f.due_date < todayStr;
+    var isToday   = f.due_date === todayStr;
+    var label = isToday ? 'due today' : (isOverdue ? 'was due ' + fmtDate(f.due_date) : 'due ' + fmtDate(f.due_date));
+    var color = (isOverdue || isToday) ? 'color:var(--accent);font-weight:600' : '';
+    return ' <span style="' + color + '">\u00b7 ' + label + '</span>';
+  }
+
   function taskRow(f){
     var name = state.students[f.student_id] || 'Prospect';
+    var assigneeName = f.assignee_id && state.members[f.assignee_id] ? state.members[f.assignee_id] : '';
+    var statusChipClass = f.status === 'overdue' ? 'is-danger' : (f.status === 'done' ? 'is-success' : 'is-neutral');
     return '<div class="teams-row" data-task-id="' + esc(f.id) + '" style="cursor:pointer">' +
       '<div style="flex:1;min-width:0">' +
         '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
-          '<span class="teams-chip' + (f.status === 'overdue' ? ' is-pending' : ' is-neutral') + '">' + esc(STATUS_LABELS[f.status] || f.status) + '</span>' +
+          '<span class="teams-chip ' + statusChipClass + '">' + esc(STATUS_LABELS[f.status] || f.status) + '</span>' +
           '<strong style="font-size:var(--t-sm)">' + esc(name) + '</strong>' +
         '</div>' +
-        '<div class="teams-card-desc" style="margin-top:4px">' + esc(f.channel || '') + (f.due_date ? ' \u00b7 due ' + esc(fmtDate(f.due_date)) : '') + '</div>' +
+        '<div class="teams-card-desc" style="margin-top:4px">' + esc(f.channel || '') + dueDateLabel(f) + (assigneeName ? ' \u00b7 ' + esc(assigneeName) : '') + '</div>' +
       '</div>' +
       '<span aria-hidden="true">\u203a</span>' +
     '</div>';

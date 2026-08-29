@@ -11,6 +11,7 @@
   function esc(s){ return (window.TeamsCtx && window.TeamsCtx.esc) ? window.TeamsCtx.esc(s) : String(s == null ? '' : s); }
 
   var STATUS_LABELS = { planned: 'Planned', confirmed: 'Confirmed', completed: 'Completed', cancelled: 'Cancelled' };
+  var STATUS_CHIP_CLASS = { planned: 'is-info', confirmed: 'is-warn', completed: 'is-success', cancelled: 'is-neutral' };
   var state = { baptisms: [] };
 
   function renderActions(){
@@ -31,14 +32,16 @@
 
   function row(b){
     var name = b.person_name || 'Unnamed';
+    var chipClass = STATUS_CHIP_CLASS[b.status] || 'is-neutral';
     return '<div class="teams-row" data-baptism-id="' + esc(b.id) + '" style="cursor:pointer">' +
       '<div style="flex:1;min-width:0">' +
         '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
-          '<span class="teams-chip is-neutral">' + esc(STATUS_LABELS[b.status] || b.status) + '</span>' +
+          '<span class="teams-chip ' + chipClass + '">' + esc(STATUS_LABELS[b.status] || b.status) + '</span>' +
           '<strong style="font-size:var(--t-sm)">' + esc(name) + '</strong>' +
         '</div>' +
         '<div class="teams-card-desc" style="margin-top:4px">' + esc(fmtDate(b.baptism_date)) + (b.service_slot ? ' \u00b7 ' + esc(b.service_slot) : '') + '</div>' +
       '</div>' +
+      '<span aria-hidden="true">\u203a</span>' +
     '</div>';
   }
 
@@ -68,6 +71,11 @@
     var sb = window.TeamsCtx.sb;
     var churchId = window.TeamsCtx.activeChurchId;
     var b = existing || {};
+    var deleteSection = existing
+      ? '<div id="bapDeleteSection" style="margin-top:var(--s-4);border-top:1px solid var(--border);padding-top:var(--s-4)">' +
+          '<button class="teams-btn teams-btn-sm teams-btn-secondary" id="bapDeleteBtn" type="button" style="color:var(--accent);border-color:var(--accent)">Delete this record</button>' +
+        '</div>'
+      : '';
     var ov = overlay(
       '<button class="teams-sheet-close" type="button" aria-label="Close">\u2715</button>' +
       '<h2>' + (existing ? 'Edit Baptism' : 'New Baptism') + '</h2>' +
@@ -75,13 +83,40 @@
       '<div class="teams-field"><label for="bapDate">Date</label><input id="bapDate" type="date" value="' + esc(b.baptism_date || '') + '" /></div>' +
       '<div class="teams-field"><label for="bapSlot">Service</label><input id="bapSlot" type="text" placeholder="e.g. Sunday evening" value="' + esc(b.service_slot || '') + '" /></div>' +
       '<div class="teams-field"><label for="bapStatus">Status</label><select id="bapStatus">' +
-        Object.keys(STATUS_LABELS).map(function(k){ return '<option value="' + k + '"' + (b.status === k ? ' selected' : '') + '>' + STATUS_LABELS[k] + '</option>'; }).join('') +
+        Object.keys(STATUS_LABELS).map(function(k){ return '<option value="' + k + '"' + ((b.status || 'planned') === k ? ' selected' : '') + '>' + STATUS_LABELS[k] + '</option>'; }).join('') +
       '</select></div>' +
       '<div class="teams-field"><label for="bapNotes">Notes</label><textarea id="bapNotes">' + esc(b.notes || '') + '</textarea></div>' +
       '<div id="bapErr"></div>' +
-      '<button class="teams-btn teams-btn-block" id="bapSaveBtn" type="button">' + (existing ? 'Save changes' : 'Add baptism') + '</button>'
+      '<button class="teams-btn teams-btn-block" id="bapSaveBtn" type="button">' + (existing ? 'Save changes' : 'Add baptism') + '</button>' +
+      deleteSection
     );
     ov.querySelector('.teams-sheet-close').addEventListener('click', function(){ ov.remove(); });
+
+    // Delete with inline confirm
+    var deleteBtn = ov.querySelector('#bapDeleteBtn');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', function(){
+        var section = ov.querySelector('#bapDeleteSection');
+        section.innerHTML =
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+            '<span class="teams-card-desc" style="font-size:var(--t-xs)">Delete this baptism record? This cannot be undone.</span>' +
+            '<button class="teams-btn teams-btn-sm teams-btn-danger" id="bapDeleteConfirm" type="button">Yes, delete</button>' +
+            '<button class="teams-btn teams-btn-sm teams-btn-secondary" id="bapDeleteCancel" type="button">Cancel</button>' +
+          '</div>';
+        section.querySelector('#bapDeleteCancel').addEventListener('click', function(){ ov.remove(); openComposer(existing); });
+        section.querySelector('#bapDeleteConfirm').addEventListener('click', function(){
+          var confirmBtn = section.querySelector('#bapDeleteConfirm');
+          confirmBtn.disabled = true; confirmBtn.textContent = 'Deleting\u2026';
+          sb.from('bst_baptisms').delete().eq('id', existing.id).then(function(res){
+            confirmBtn.disabled = false; confirmBtn.textContent = 'Yes, delete';
+            if (res.error) { section.innerHTML = '<div class="teams-error">' + esc(res.error.message || 'Could not delete.') + '</div>'; return; }
+            ov.remove();
+            load().then(render);
+          });
+        });
+      });
+    }
+
     ov.querySelector('#bapSaveBtn').addEventListener('click', function(){
       var btn = ov.querySelector('#bapSaveBtn');
       var errEl = ov.querySelector('#bapErr');

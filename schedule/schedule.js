@@ -71,12 +71,20 @@
       });
   }
 
+  function isCurrentWeek(){
+    var now = startOfWeek(new Date());
+    return now.getTime() === state.weekStart.getTime();
+  }
+
   function renderHeader(){
+    var filteredCount = state.events.filter(function(ev){ return state.filter === 'all' || kindOf(ev) === state.filter; }).length;
+    var countLabel = filteredCount > 0 ? ' <span class="teams-chip is-neutral" style="font-size:var(--t-xs);padding:2px 8px">' + filteredCount + '</span>' : '';
     return '<div style="display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);margin-bottom:var(--s-4);flex-wrap:wrap">' +
-      '<div style="display:flex;align-items:center;gap:var(--s-2)">' +
+      '<div style="display:flex;align-items:center;gap:var(--s-2);flex-wrap:wrap">' +
         '<button class="teams-btn teams-btn-secondary teams-btn-sm" id="wkPrev" type="button">\u2039 Prev</button>' +
-        '<strong>' + esc(fmtRange(state.weekStart, addDays(state.weekStart,7))) + '</strong>' +
+        '<strong>' + esc(fmtRange(state.weekStart, addDays(state.weekStart,7))) + '</strong>' + countLabel +
         '<button class="teams-btn teams-btn-secondary teams-btn-sm" id="wkNext" type="button">Next \u203a</button>' +
+        (!isCurrentWeek() ? '<button class="teams-btn teams-btn-secondary teams-btn-sm" id="wkToday" type="button">Today</button>' : '') +
       '</div>' +
       '<div style="display:flex;gap:6px">' +
         '<button class="teams-chip' + (state.view==='week'?' is-selected':'') + '" id="viewWeekBtn">Week</button>' +
@@ -135,6 +143,8 @@
     root.innerHTML = renderHeader() + '<div id="scheduleListArea"></div>';
     document.getElementById('wkPrev').addEventListener('click', function(){ state.weekStart = addDays(state.weekStart, -7); refresh(); });
     document.getElementById('wkNext').addEventListener('click', function(){ state.weekStart = addDays(state.weekStart, 7); refresh(); });
+    var todayBtn = document.getElementById('wkToday');
+    if (todayBtn) todayBtn.addEventListener('click', function(){ state.weekStart = startOfWeek(new Date()); refresh(); });
     document.getElementById('viewWeekBtn').addEventListener('click', function(){ state.view = 'week'; refresh(true); });
     document.getElementById('viewListBtn').addEventListener('click', function(){ state.view = 'list'; refresh(true); });
   }

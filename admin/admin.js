@@ -60,21 +60,30 @@
     return '<section class="teams-card" id="pending" style="margin-bottom:var(--s-5)"><h3 class="teams-card-label">Pending Approvals</h3>' + body + '</section>';
   }
 
+  function showAdminToast(msg, isError){
+    var toast = document.createElement('div');
+    toast.className = 'teams-toast show';
+    toast.textContent = msg;
+    if (isError) toast.style.background = 'var(--accent)';
+    document.body.appendChild(toast);
+    setTimeout(function(){ toast.classList.remove('show'); setTimeout(function(){ toast.remove(); }, 300); }, 3500);
+  }
+
   function wirePending(){
     Array.prototype.forEach.call(root.querySelectorAll('[data-approve]'), function(btn){
       btn.addEventListener('click', function(){
-        btn.disabled = true;
+        btn.disabled = true; btn.textContent = 'Approving\u2026';
         window.TeamsCtx.sb.rpc('bst_approve_pending_member', { p_member: btn.getAttribute('data-approve') }).then(function(res){
-          if (res.error) { alert('Could not approve: ' + res.error.message); btn.disabled = false; return; }
+          if (res.error) { showAdminToast('Could not approve: ' + res.error.message, true); btn.disabled = false; btn.textContent = 'Approve'; return; }
           load().then(render);
         });
       });
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-reject]'), function(btn){
       btn.addEventListener('click', function(){
-        btn.disabled = true;
+        btn.disabled = true; btn.textContent = 'Rejecting\u2026';
         window.TeamsCtx.sb.rpc('bst_reject_pending_member', { p_member: btn.getAttribute('data-reject') }).then(function(res){
-          if (res.error) { alert('Could not reject: ' + res.error.message); btn.disabled = false; return; }
+          if (res.error) { showAdminToast('Could not reject: ' + res.error.message, true); btn.disabled = false; btn.textContent = 'Reject'; return; }
           load().then(render);
         });
       });
@@ -181,7 +190,7 @@
         var isActive = btn.getAttribute('data-active') === 'true';
         btn.disabled = true;
         window.TeamsCtx.sb.from('bst_members').update({ active: !isActive }).eq('id', id).then(function(res){
-          if (res.error) { alert('Could not update member: ' + res.error.message); btn.disabled = false; return; }
+          if (res.error) { showAdminToast('Could not update member: ' + res.error.message, true); btn.disabled = false; return; }
           load().then(render);
         });
       });
@@ -191,11 +200,23 @@
         var id = btn.getAttribute('data-mid');
         var role = btn.getAttribute('data-set-role');
         var label = (role === 'church_admin' ? 'promote to church admin' : 'change to teacher');
-        if (!confirm('Are you sure you want to ' + label + '?')) return;
-        btn.disabled = true;
-        window.TeamsCtx.sb.from('bst_members').update({ role: role }).eq('id', id).then(function(res){
-          if (res.error) { alert('Could not change role: ' + res.error.message); btn.disabled = false; return; }
-          load().then(render);
+        // Inline confirm: replace the button temporarily
+        var row = btn.closest('.teams-row');
+        var placeholder = document.createElement('div');
+        placeholder.style.cssText = 'display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap';
+        placeholder.innerHTML =
+          '<span style="font-size:var(--t-xs);color:var(--ink-2)">' + esc(label.charAt(0).toUpperCase() + label.slice(1)) + '?</span>' +
+          '<button class="teams-btn teams-btn-sm" data-confirm-role type="button">Yes</button>' +
+          '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-cancel-role type="button">Cancel</button>';
+        btn.parentNode.replaceChild(placeholder, btn);
+        placeholder.querySelector('[data-cancel-role]').addEventListener('click', function(){ load().then(render); });
+        placeholder.querySelector('[data-confirm-role]').addEventListener('click', function(){
+          var confirmBtn = placeholder.querySelector('[data-confirm-role]');
+          confirmBtn.disabled = true; confirmBtn.textContent = 'Saving\u2026';
+          window.TeamsCtx.sb.from('bst_members').update({ role: role }).eq('id', id).then(function(res){
+            if (res.error) { showAdminToast('Could not change role: ' + res.error.message, true); load().then(render); return; }
+            load().then(render);
+          });
         });
       });
     });
@@ -205,7 +226,7 @@
         var isOn = btn.getAttribute('data-also') === 'true';
         btn.disabled = true;
         window.TeamsCtx.sb.from('bst_members').update({ also_teaches: !isOn }).eq('id', id).then(function(res){
-          if (res.error) { alert('Could not update: ' + res.error.message); btn.disabled = false; return; }
+          if (res.error) { showAdminToast('Could not update: ' + res.error.message, true); btn.disabled = false; return; }
           load().then(render);
         });
       });
@@ -312,15 +333,27 @@
         var id = btn.getAttribute('data-delete-team');
         var team = state.teams.filter(function(t){ return t.id === id; })[0];
         var name = (team && team.name) || 'this team';
-        if (!confirm('Delete "' + name + '"? All team assignments will be removed. This cannot be undone.')) return;
-        btn.disabled = true;
-        var sb = window.TeamsCtx.sb;
-        // Delete team_members first, then the team.
-        sb.from('bst_team_members').delete().eq('team_id', id).then(function(res){
-          if (res.error) { alert('Could not remove team members: ' + res.error.message); btn.disabled = false; return; }
-          sb.from('bst_teams').delete().eq('id', id).then(function(res2){
-            if (res2.error) { alert('Could not delete team: ' + res2.error.message); btn.disabled = false; return; }
-            load().then(render);
+        // Inline confirm: replace the button group temporarily
+        var row = btn.closest('.teams-row');
+        var btnGroup = btn.parentNode;
+        var origHtml = btnGroup.innerHTML;
+        btnGroup.innerHTML =
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+            '<span style="font-size:var(--t-xs);color:var(--ink-2)">Delete &ldquo;' + esc(name) + '&rdquo;?</span>' +
+            '<button class="teams-btn teams-btn-sm teams-btn-danger" data-confirm-del type="button">Yes, delete</button>' +
+            '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-cancel-del type="button">Cancel</button>' +
+          '</div>';
+        btnGroup.querySelector('[data-cancel-del]').addEventListener('click', function(){ btnGroup.innerHTML = origHtml; wireTeams(); });
+        btnGroup.querySelector('[data-confirm-del]').addEventListener('click', function(){
+          var confirmBtn = btnGroup.querySelector('[data-confirm-del]');
+          confirmBtn.disabled = true; confirmBtn.textContent = 'Deleting\u2026';
+          var sb = window.TeamsCtx.sb;
+          sb.from('bst_team_members').delete().eq('team_id', id).then(function(res){
+            if (res.error) { showAdminToast('Could not remove team members: ' + res.error.message, true); btnGroup.innerHTML = origHtml; wireTeams(); return; }
+            sb.from('bst_teams').delete().eq('id', id).then(function(res2){
+              if (res2.error) { showAdminToast('Could not delete team: ' + res2.error.message, true); btnGroup.innerHTML = origHtml; wireTeams(); return; }
+              load().then(render);
+            });
           });
         });
       });
@@ -424,7 +457,7 @@
     var body = state.overdue.length
       ? state.overdue.map(function(f){
           var name = state.students[f.student_id] || 'Prospect';
-          return '<a class="teams-row" href="/teams/student/?id=' + esc(f.student_id) + '"><div><strong style="font-size:var(--t-sm)">' + esc(name) + '</strong><div class="teams-card-desc">' + esc(f.channel || '') + '</div></div></a>';
+          return '<a class="teams-row" href="/student/?id=' + esc(f.student_id) + '"><div><strong style="font-size:var(--t-sm)">' + esc(name) + '</strong><div class="teams-card-desc">' + esc(f.channel || '') + '</div></div></a>';
         }).join('')
       : '<div class="teams-card-desc">No overdue follow-ups.</div>';
     return '<section class="teams-card"><h3 class="teams-card-label">All Overdue Follow-ups</h3>' + body + '</section>';

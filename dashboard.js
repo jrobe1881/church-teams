@@ -60,7 +60,22 @@
     '</a>';
   }
 
+  function greetingText(){
+    var h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
   function renderDashboard(){
+    // Show church name in the subbar heading
+    var m = window.TeamsCtx.activeMember;
+    var churchName = m && m.church_name ? m.church_name : '';
+    var subbarH1 = document.querySelector('.teams-subbar h1[data-i18n="nav.teams"]');
+    if (subbarH1 && churchName) {
+      subbarH1.textContent = churchName;
+    }
+
     tabbarSlot.innerHTML = window.TeamsCtx.bottomTabs('dashboard');
     root.innerHTML = skeletonCards(6);
     var sb = window.TeamsCtx.sb;
@@ -147,7 +162,15 @@
       var pending = showPending ? results[i++] : null;
       var atRisk = showInsights ? results[i++] : null;
 
-      var html = '<div class="teams-grid">';
+      // Refresh tabbar with live badge counts now that we have the numbers
+      var tasksBadge = overdue > 0 ? overdue : 0;
+      var adminBadge = (showPending && pending > 0) ? pending : 0;
+      tabbarSlot.innerHTML = window.TeamsCtx.bottomTabs('dashboard', { tasksBadge: tasksBadge, adminBadge: adminBadge });
+
+      var userName = window.TeamsCtx.user && (window.TeamsCtx.user.user_metadata && window.TeamsCtx.user.user_metadata.full_name);
+      var greeting = greetingText() + (userName ? ', ' + userName.split(' ')[0] : '') + '.';
+      var html = '<p style="font-family:var(--font-serif);font-size:var(--t-lg);color:var(--ink-2);margin-bottom:var(--s-5)">' + greeting + '</p>';
+      html += '<div class="teams-grid">';
       html += cardLink('/students/', newIntakes, 'New Intakes Awaiting Contact', 'Reach out within the follow-up window');
       html += cardLink('/students/', activeStudents, 'Active Prospects', 'Currently in ongoing study');
       html += cardLink('/admin/', activeTeachers, 'Active Teachers', 'Serving this church');

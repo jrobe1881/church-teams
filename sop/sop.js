@@ -34,12 +34,21 @@
     dropped:      'follow_up'
   };
 
+  /* ── Checklist state persistence (localStorage) ── */
+  var LS_KEY = 'teams_sop_checks_v1';
+  function loadCheckState(){
+    try { return JSON.parse((window.safeLS || localStorage).getItem(LS_KEY) || '{}'); } catch(e){ return {}; }
+  }
+  function saveCheckState(cs){
+    try { (window.safeLS || localStorage).setItem(LS_KEY, JSON.stringify(cs)); } catch(e){}
+  }
+
   var state = {
     sops:        [],
     openId:      null,
     filter:      'all',   // category key
     search:      '',
-    checkState:  {}       // { [sopId]: { [stepIdx]: bool } } — ephemeral, not persisted
+    checkState:  loadCheckState()  // { [sopId]: { [stepIdx]: bool } } — persisted in localStorage
   };
 
   /* -------- helpers -------- */
@@ -65,7 +74,7 @@
   }
 
   /* Render a checklist for an SOP that has steps. Step check state is stored
-     in state.checkState[sopId] and toggled without a DB round-trip. */
+     in state.checkState[sopId] and persisted to localStorage. */
   function renderChecklist(sopId, steps){
     var cs = state.checkState[sopId] || {};
     var html = '<div class="sop-checklist" style="margin-top:10px">';
@@ -78,7 +87,11 @@
     });
     var total = steps.length;
     var done = steps.filter(function(s, i){ return (i in cs) ? cs[i] : s.checked; }).length;
-    html += '<div style="margin-top:8px;font-size:var(--t-xs);color:var(--ink-3)">' + done + ' of ' + total + ' steps completed</div>';
+    var allDone = done === total && total > 0;
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px;flex-wrap:wrap">' +
+      '<span style="font-size:var(--t-xs);color:' + (allDone ? 'var(--accent)' : 'var(--ink-3)') + '">' + (allDone ? '\u2713 All ' + total + ' steps completed' : done + ' of ' + total + ' steps completed') + '</span>' +
+      (done > 0 ? '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-sop-reset="' + sopId + '" type="button" style="font-size:var(--t-xs);padding:4px 10px;min-height:28px">Reset</button>' : '') +
+    '</div>';
     html += '</div>';
     return html;
   }
@@ -135,9 +148,10 @@
     var isAdmin = window.TeamsCtx.isChurchAdmin || window.TeamsCtx.isSiteAdmin;
 
     var adminActions = isAdmin && open
-      ? '<div style="display:flex;gap:8px;margin-top:12px">' +
+      ? '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">' +
           '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-sop-edit="' + esc(s.id) + '" type="button">Edit</button>' +
           '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-sop-del="' + esc(s.id) + '" type="button" style="color:#7a1f2b;border-color:#e5c7cb">Delete</button>' +
+          '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-sop-copy="' + esc(s.id) + '" type="button">Copy text</button>' +
         '</div>'
       : '';
 
@@ -145,7 +159,7 @@
        offer a "Back to prospect" chip so they can return immediately. */
     var fromId = (function(){ try { return new URLSearchParams(location.search).get('from'); } catch(e){ return null; } })();
     var backLink = fromId && open
-      ? '<div style="margin-top:10px"><a class="teams-btn teams-btn-sm teams-btn-secondary" href="/teams/student/?id=' + esc(fromId) + '">‹ Back to prospect</a></div>'
+      ? '<div style="margin-top:10px"><a class="teams-btn teams-btn-sm teams-btn-secondary" href="/student/?id=' + esc(fromId) + '">\u2039 Back to prospect</a></div>'
       : '';
 
     return '<div class="teams-card" style="margin-bottom:var(--s-3)">' +
@@ -220,16 +234,43 @@
         if (!state.checkState[sopId]) state.checkState[sopId] = {};
         /* Toggle based on the checkbox value AFTER the native click flips it */
         state.checkState[sopId][idx] = cb ? cb.checked : !state.checkState[sopId][idx];
+        saveCheckState(state.checkState);
         render();
       });
     });
 
-    /* Wire admin edit/delete */
+    /* Wire checklist reset buttons */
+    Array.prototype.forEach.call(root.querySelectorAll('[data-sop-reset]'), function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var sopId = btn.getAttribute('data-sop-reset');
+        delete state.checkState[sopId];
+        saveCheckState(state.checkState);
+        render();
+      });
+    });
+
+    /* Wire admin edit/delete/copy */
     Array.prototype.forEach.call(root.querySelectorAll('[data-sop-edit]'), function(btn){
       btn.addEventListener('click', function(e){ e.stopPropagation(); var id = btn.getAttribute('data-sop-edit'); var s = state.sops.filter(function(x){ return x.id === id; })[0]; if (s) openComposer(s); });
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-sop-del]'), function(btn){
       btn.addEventListener('click', function(e){ e.stopPropagation(); var id = btn.getAttribute('data-sop-del'); var s = state.sops.filter(function(x){ return x.id === id; })[0]; if (s) confirmDelete(s); });
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-sop-copy]'), function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var id = btn.getAttribute('data-sop-copy');
+        var s = state.sops.filter(function(x){ return x.id === id; })[0];
+        if (!s) return;
+        var text = (s.title || '') + '\n\n' + (s.body || '');
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(text).then(function(){
+            btn.textContent = 'Copied!';
+            setTimeout(function(){ btn.textContent = 'Copy text'; }, 2000);
+          }).catch(function(){});
+        }
+      });
     });
   }
 

@@ -33,7 +33,8 @@
     students:  [],   /* bst_students rows (active/prospect/cultivating/new_intake) */
     followups: [],   /* bst_followups rows for this church */
     sessions:  [],   /* bst_sessions rows for this church */
-    notes:     []    /* bst_student_notes rows for this church */
+    notes:     [],   /* bst_student_notes rows for this church */
+    loadedAt:  null  /* Date of last successful data load */
   };
 
   /* ── Data loading ───────────────────────────────────────────────────────── */
@@ -69,6 +70,7 @@
       state.followups = results[1].error ? [] : (results[1].data || []);
       state.sessions  = results[2].error ? [] : (results[2].data || []);
       state.notes     = results[3].error ? [] : (results[3].data || []);
+      state.loadedAt  = new Date();
       if (results[0].error) console.error('[Insights] students load error', results[0].error);
       if (results[1].error) console.error('[Insights] followups load error', results[1].error);
       if (results[2].error) console.error('[Insights] sessions load error', results[2].error);
@@ -325,17 +327,32 @@
   /* ── Render ─────────────────────────────────────────────────────────────── */
   function render(){
     tabbarSlot.innerHTML = window.TeamsCtx.bottomTabs('insights');
+    var loadedStr = state.loadedAt
+      ? 'Updated ' + state.loadedAt.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' })
+      : '';
     root.innerHTML =
       buildFunnel() +
       buildAtRisk() +
-      buildHeatmap();
+      buildHeatmap() +
+      '<p style="text-align:center;font-size:var(--t-xs);color:var(--ink-muted);margin-top:var(--s-5)">' + loadedStr + '</p>';
   }
 
   /* ── Entry point ────────────────────────────────────────────────────────── */
   window.TeamsCtx.ready.then(function(){
     if (!window.TeamsCtx.requireAccess(root, { adminOnly: true })) return;
-    /* No subbar actions needed for a read-only page. */
-    if (actionsEl) actionsEl.innerHTML = '';
+    /* Add a refresh button to the subbar actions. */
+    if (actionsEl) {
+      actionsEl.innerHTML = '<button class="teams-btn teams-btn-sm teams-btn-secondary" id="insRefreshBtn" type="button">\u21bb Refresh</button>';
+      document.getElementById('insRefreshBtn').addEventListener('click', function(){
+        var btn = document.getElementById('insRefreshBtn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Loading\u2026'; }
+        load().then(function(){
+          render();
+          var b = document.getElementById('insRefreshBtn');
+          if (b) { b.disabled = false; b.textContent = '\u21bb Refresh'; }
+        });
+      });
+    }
     load().then(render);
   });
 })();

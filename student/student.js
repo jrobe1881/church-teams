@@ -18,7 +18,7 @@
   }
 
   function renderMissing(){
-    root.innerHTML = '<div class="teams-empty"><span class="teams-empty-glyph" aria-hidden="true">\u25F7</span><h2>Prospect not found</h2><p>This prospect may have been removed, or you may not have access.</p><a class="teams-btn" href="/teams/students/">Back to prospects</a></div>';
+    root.innerHTML = '<div class="teams-empty"><span class="teams-empty-glyph" aria-hidden="true">\u25F7</span><h2>Prospect not found</h2><p>This prospect may have been removed, or you may not have access.</p><a class="teams-btn" href="/students/">Back to prospects</a></div>';
   }
 
   function load(){
@@ -83,7 +83,7 @@
     if (!sops || !sops.length) return '';
     var studentId = state.student ? state.student.id : '';
     var links = sops.slice(0, 3).map(function(s){
-      return '<a class="teams-btn teams-btn-sm teams-btn-secondary" href="/teams/sop/?from=' + esc(studentId) + '" style="font-size:var(--t-xs)">' +
+      return '<a class="teams-btn teams-btn-sm teams-btn-secondary" href="/sop/?from=' + esc(studentId) + '" style="font-size:var(--t-xs)">' +
         '\u25F7 ' + esc(s.title) + '</a>';
     }).join('');
     return '<div style="margin-top:10px;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
@@ -123,7 +123,8 @@
           '</div>' +
           '<div id="studentEditStatus" class="teams-card-desc" style="font-size:var(--t-xs);margin-top:6px;min-height:16px"></div>' +
           '<div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">' +
-            '<button class="teams-btn teams-btn-sm" id="scheduleStudyBtn" type="button">Schedule</button>' +
+            '<button class="teams-btn teams-btn-sm" id="scheduleStudyBtn" type="button">\u25F7 Schedule</button>' +
+            '<button class="teams-btn teams-btn-sm teams-btn-secondary" id="addFollowupBtn" type="button">\u2611 Log follow-up</button>' +
             (window.TeamsCtx.isChurchAdmin ? '<button class="teams-btn teams-btn-sm teams-btn-secondary" id="deleteStudentBtn" type="button" style="color:#7a1f2b;border-color:#e5c7cb">Delete prospect</button>' : '') +
           '</div>' +
           renderSopBanner(s.status) +
@@ -156,16 +157,55 @@
     '</div>';
   }
 
+  var SESSION_STATUS_CHIP = { scheduled: 'is-info', completed: 'is-success', cancelled: 'is-neutral' };
+  var FOLLOWUP_STATUS_CHIP = { open: 'is-neutral', done: 'is-success', overdue: 'is-danger', snoozed: 'is-warn' };
+
   function renderTimeline(){
     var items = [];
     state.sessions.forEach(function(sess){
-      items.push({ when: sess.scheduled_at, html: '<div class="teams-row"><div><strong style="font-size:var(--t-sm)">Study \u00b7 ' + esc(sess.lesson || 'Session') + '</strong><div class="teams-card-desc">' + esc(fmtDate(sess.scheduled_at)) + ' \u00b7 ' + esc(sess.status || '') + '</div></div></div>' });
+      var kindLabel = sess.kind === 'cultivation' ? 'Cultivation' : sess.kind === 'visitation' ? 'Visitation' : sess.kind === 'church' ? 'Church' : 'Study';
+      var chipClass = SESSION_STATUS_CHIP[sess.status] || 'is-neutral';
+      items.push({ when: sess.scheduled_at, html:
+        '<div class="teams-row kind-' + (sess.kind || 'study') + '">' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+              '<span style="font-size:.85rem" aria-hidden="true">\u25F7</span>' +
+              '<strong style="font-size:var(--t-sm)">' + kindLabel + (sess.lesson ? ' \u00b7 ' + esc(sess.lesson) : '') + '</strong>' +
+              '<span class="teams-chip ' + chipClass + '">' + esc(sess.status || '') + '</span>' +
+            '</div>' +
+            '<div class="teams-card-desc" style="margin-top:4px">' + esc(fmtDate(sess.scheduled_at)) + '</div>' +
+          '</div>' +
+        '</div>'
+      });
     });
     state.followups.forEach(function(f){
-      items.push({ when: f.created_at, html: '<div class="teams-row"><div><strong style="font-size:var(--t-sm)">Follow-up \u00b7 ' + esc(f.channel || '') + '</strong><div class="teams-card-desc">' + esc(fmtDate(f.created_at)) + ' \u00b7 ' + esc(f.status || '') + (f.note ? ' \u2014 ' + esc(f.note) : '') + '</div></div></div>' });
+      var chipClass = FOLLOWUP_STATUS_CHIP[f.status] || 'is-neutral';
+      items.push({ when: f.created_at, html:
+        '<div class="teams-row">' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+              '<span style="font-size:.85rem" aria-hidden="true">\u2611</span>' +
+              '<strong style="font-size:var(--t-sm)">Follow-up' + (f.channel ? ' \u00b7 ' + esc(f.channel) : '') + '</strong>' +
+              '<span class="teams-chip ' + chipClass + '">' + esc(f.status || '') + '</span>' +
+            '</div>' +
+            '<div class="teams-card-desc" style="margin-top:4px">' + esc(fmtDate(f.created_at)) + (f.note ? ' \u2014 ' + esc(f.note) : '') + '</div>' +
+          '</div>' +
+        '</div>'
+      });
     });
     state.notes.forEach(function(n){
-      items.push({ when: n.created_at, html: '<div class="teams-row teams-note-row"><div><strong style="font-size:var(--t-sm)">Note' + (n.pinned ? ' \u00b7 Pinned' : '') + ' \u00b7 ' + esc(SENSITIVITY_LABELS[n.sensitivity] || n.sensitivity) + '</strong><div class="teams-card-desc">' + esc(fmtDate(n.created_at)) + ' \u2014 ' + esc(n.body) + '</div></div></div>' });
+      items.push({ when: n.created_at, html:
+        '<div class="teams-row' + (n.pinned ? ' kind-church' : '') + '">' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+              '<span style="font-size:.85rem" aria-hidden="true">\u270E</span>' +
+              '<strong style="font-size:var(--t-sm)">Note' + (n.pinned ? ' \u00b7 Pinned' : '') + '</strong>' +
+              '<span class="teams-chip is-neutral">' + esc(SENSITIVITY_LABELS[n.sensitivity] || n.sensitivity) + '</span>' +
+            '</div>' +
+            '<div class="teams-card-desc" style="margin-top:4px">' + esc(fmtDate(n.created_at)) + ' \u2014 ' + esc(n.body) + '</div>' +
+          '</div>' +
+        '</div>'
+      });
     });
     items.sort(function(a,b){ return new Date(b.when) - new Date(a.when); });
     if (!items.length) return '<div class="teams-empty"><span class="teams-empty-glyph" aria-hidden="true">\u25F7</span><h2>No activity yet</h2><p>Studies, follow-ups, and notes will appear here.</p></div>';
@@ -206,22 +246,37 @@
     var deleteBtn = document.getElementById('deleteStudentBtn');
 
     function performDelete(){
-      deleteBtn && (deleteBtn.disabled = true);
       flash('Deleting\u2026');
       sb.rpc('bst_delete_student', { p_student: state.student.id }).then(function(res){
         if (res.error) {
-          if (deleteBtn) deleteBtn.disabled = false;
           flash('Could not delete: ' + (res.error.message || 'error'));
+          render(); // re-render to restore the delete button
           return;
         }
-        // Redirect back to the students list; the record is gone.
-        window.location.href = '/teams/students/'; // back to prospects list
+        window.location.href = '/students/';
       });
     }
 
     if (deleteBtn) deleteBtn.addEventListener('click', function(){
-      if (!confirm('Delete ' + (state.student.full_name || 'this prospect') + '? This removes their notes, follow-ups, and scheduled sessions. This cannot be undone.')) return;
-      performDelete();
+      // Replace the button with an inline confirm so we avoid window.confirm()
+      var actionRow = deleteBtn.parentNode;
+      deleteBtn.style.display = 'none';
+      var confirmEl = document.createElement('span');
+      confirmEl.style.cssText = 'display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap';
+      confirmEl.innerHTML =
+        '<span style="font-size:var(--t-xs);color:var(--ink-2)">Delete ' + esc(state.student.full_name || 'this prospect') + '?</span>' +
+        '<button class="teams-btn teams-btn-sm teams-btn-danger" id="deleteStudentConfirm" type="button">Yes, delete</button>' +
+        '<button class="teams-btn teams-btn-sm teams-btn-secondary" id="deleteStudentCancel" type="button">Cancel</button>';
+      actionRow.appendChild(confirmEl);
+      confirmEl.querySelector('#deleteStudentCancel').addEventListener('click', function(){
+        confirmEl.remove();
+        deleteBtn.style.display = '';
+      });
+      confirmEl.querySelector('#deleteStudentConfirm').addEventListener('click', function(){
+        confirmEl.querySelector('#deleteStudentConfirm').disabled = true;
+        confirmEl.querySelector('#deleteStudentConfirm').textContent = 'Deleting\u2026';
+        performDelete();
+      });
     });
 
     if (teacherSel) teacherSel.addEventListener('change', function(){
@@ -243,20 +298,78 @@
         if (res.error) { flash('Could not save: ' + (res.error.message || 'error')); return; }
         state.student.status = newStatus;
         flash('Status updated.');
-        // Offer to delete when marked as dropped (admins only).
-        if (newStatus === 'dropped' && window.TeamsCtx.isChurchAdmin) {
-          if (confirm('Marked as dropped. Delete this prospect and all their records now? This cannot be undone.')) {
-            performDelete();
-            return;
-          }
-        }
-        // Re-render header chip label
+        // Re-render so the chip and teacher options update.
+        // (Dropped-delete prompt is surfaced via the explicit Delete button — no dialog here.)
         render();
       });
     });
 
     if (studyBtn) studyBtn.addEventListener('click', function(){
       openScheduleSheet(state.student, state.teachers);
+    });
+    var followupBtn = document.getElementById('addFollowupBtn');
+    if (followupBtn) followupBtn.addEventListener('click', function(){
+      openFollowupSheet(state.student);
+    });
+  }
+
+  // ---------------- Inline follow-up log sheet ----------------
+  function openFollowupSheet(student){
+    var sb = window.TeamsCtx.sb;
+    var ov = document.createElement('div');
+    ov.className = 'teams-overlay open';
+    ov.innerHTML =
+      '<div class="teams-sheet" role="dialog" aria-modal="true">' +
+        '<button class="teams-sheet-close" type="button" aria-label="Close">\u2715</button>' +
+        '<h2>Log Follow-up for ' + esc(student.full_name) + '</h2>' +
+        '<div class="teams-field"><label for="fuChannel">Channel</label>' +
+          '<select id="fuChannel">' +
+            '<option value="call">Call</option>' +
+            '<option value="text">Text</option>' +
+            '<option value="email">Email</option>' +
+            '<option value="visit">Visit</option>' +
+            '<option value="other">Other</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="teams-field"><label for="fuOutcome">Outcome</label>' +
+          '<select id="fuOutcome">' +
+            '<option value="connected">Connected</option>' +
+            '<option value="left_message">Left message</option>' +
+            '<option value="no_answer">No answer</option>' +
+            '<option value="scheduled_study">Scheduled a study</option>' +
+            '<option value="needs_reassignment">Needs reassignment</option>' +
+            '<option value="not_interested">Not interested</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="teams-field"><label for="fuNote">Note (optional)</label><textarea id="fuNote" placeholder="What happened\u2026"></textarea></div>' +
+        '<div id="fuErr"></div>' +
+        '<button class="teams-btn teams-btn-block" id="fuSaveBtn" type="button">Log follow-up</button>' +
+      '</div>';
+    document.body.appendChild(ov);
+    ov.querySelector('.teams-sheet-close').addEventListener('click', function(){ ov.remove(); });
+    ov.addEventListener('click', function(e){ if (e.target === ov) ov.remove(); });
+
+    ov.querySelector('#fuSaveBtn').addEventListener('click', function(){
+      var btn = ov.querySelector('#fuSaveBtn');
+      var errEl = ov.querySelector('#fuErr');
+      var channel = ov.querySelector('#fuChannel').value;
+      var outcome = ov.querySelector('#fuOutcome').value;
+      var note = ov.querySelector('#fuNote').value.trim();
+      btn.disabled = true; btn.textContent = 'Saving\u2026';
+      sb.from('bst_followups').insert({
+        student_id: student.id,
+        church_id: student.church_id,
+        channel: channel,
+        status: 'done',
+        completed_at: new Date().toISOString(),
+        assignee_id: window.TeamsCtx.activeMember ? window.TeamsCtx.activeMember.id : null,
+        note: (note ? note + ' ' : '') + '[' + outcome + ']'
+      }).then(function(res){
+        btn.disabled = false; btn.textContent = 'Log follow-up';
+        if (res.error) { errEl.innerHTML = '<div class="teams-error">' + esc(res.error.message || 'Could not save.') + '</div>'; return; }
+        ov.remove();
+        load().then(render);
+      });
     });
   }
 
