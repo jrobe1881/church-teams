@@ -100,7 +100,8 @@
         .then(function(res){ return res.error ? 0 : (res.count || 0); })
     ];
 
-    var showBaptisms = window.TeamsCtx.isChurchAdmin || window.TeamsCtx.isSiteAdmin;
+    var isAdmin = window.TeamsCtx.isChurchAdmin || window.TeamsCtx.isSiteAdmin;
+    var showBaptisms = isAdmin;
     if (showBaptisms) {
       tasksList.push(
         sb.from('bst_baptisms').select('id', { count:'exact', head:true })
@@ -111,12 +112,40 @@
     var showPending = window.TeamsCtx.isChurchAdmin;
     if (showPending) tasksList.push(window.TeamsCtx.pendingCount());
 
+    /* At-risk count for the Insights card: working prospects with no
+       follow-up in 21+ days AND no session in 30+ days. */
+    var showInsights = isAdmin;
+    if (showInsights) {
+      tasksList.push(
+        Promise.all([
+          sb.from('bst_students').select('id,status,created_at').eq('church_id', churchId).in('status', ['new_intake','prospect','cultivating','active']),
+          sb.from('bst_followups').select('student_id,created_at').eq('church_id', churchId).order('created_at', { ascending: false }),
+          sb.from('bst_sessions').select('student_id,scheduled_at').eq('church_id', churchId).order('scheduled_at', { ascending: false })
+        ]).then(function(r){
+          if (r[0].error) return 0;
+          var students  = r[0].data || [];
+          var followups = r[1].error ? [] : (r[1].data || []);
+          var sessions  = r[2].error ? [] : (r[2].data || []);
+          var now = Date.now();
+          var fuMap = {}, sessMap = {};
+          followups.forEach(function(f){ if (!fuMap[f.student_id]) fuMap[f.student_id] = f.created_at; });
+          sessions.forEach(function(s){ if (!sessMap[s.student_id]) sessMap[s.student_id] = s.scheduled_at; });
+          return students.filter(function(s){
+            var daysFu   = Math.floor((now - new Date(fuMap[s.id]   || s.created_at).getTime()) / 86400000);
+            var daysSess = Math.floor((now - new Date(sessMap[s.id] || s.created_at).getTime()) / 86400000);
+            return daysFu >= 21 && daysSess >= 30;
+          }).length;
+        })
+      );
+    }
+
     Promise.all(tasksList).then(function(results){
       var i = 0;
       var newIntakes = results[i++], activeStudents = results[i++], activeTeachers = results[i++],
           overdue = results[i++], weekEvents = results[i++];
       var baptisms = showBaptisms ? results[i++] : null;
       var pending = showPending ? results[i++] : null;
+      var atRisk = showInsights ? results[i++] : null;
 
       var html = '<div class="teams-grid">';
       html += cardLink('/students/', newIntakes, 'New Intakes Awaiting Contact', 'Reach out within the follow-up window');
@@ -126,6 +155,7 @@
       html += cardLink('/schedule/', weekEvents, 'This-Week Events', 'Studies, cultivation & baptisms');
       if (showBaptisms) html += cardLink('/baptisms/', baptisms, 'Upcoming Baptisms', 'Planned or confirmed');
       if (showPending) html += cardLink('/admin/#pending', pending, 'Pending Approvals', pending > 0 ? 'Awaiting your review' : 'No requests waiting', pending > 0 ? 'is-pending' : '');
+      if (showInsights) html += cardLink('/insights/', atRisk, 'At-Risk Prospects', atRisk > 0 ? 'No recent follow-up or session' : 'All prospects active', atRisk > 0 ? 'is-overdue' : '');
       html += '</div>';
       root.innerHTML = html;
     });

@@ -157,7 +157,10 @@
       { key:'sop',       label:'SOP',       glyph:'\u2637', href:'/sop/' },
       { key:'tasks',     label:'Tasks',     glyph:'\u2611', href:'/tasks/' }
     ];
-    // Church admins see an extra Admin tab (only visible to admins).
+    // Church admins (and site admin) see Insights and Admin tabs.
+    if (ctx.isChurchAdmin || ctx.isSiteAdmin) {
+      tabs.push({ key:'insights', label:'Insights', glyph:'\u25D1', href:'/insights/' });
+    }
     if (ctx.isChurchAdmin) {
       tabs.push({ key:'admin', label:'Admin', glyph:'\u25C8', href:'/admin/' });
     }

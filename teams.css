@@ -340,3 +340,155 @@ main.hub-content{ padding-bottom:84px; }
 /* ---------- ChurchTeams: hide Bible Parlor-only topbar items ---------- */
 #bpNotif { display: none !important; }
 .bp-qj-fab { display: none !important; }
+
+/* ============================================================
+   Insights page — Funnel, At-Risk, Activity Heatmap
+   All values reference existing --tokens. No new colors.
+   ============================================================ */
+
+/* ---- Shared section wrapper ---- */
+.ins-section > .teams-card-label{
+  font-size:var(--t-xs); font-weight:600; text-transform:uppercase;
+  letter-spacing:.07em; color:var(--ink-3); margin:0 0 var(--s-1);
+}
+
+/* ---- Funnel ---- */
+.ins-funnel{ display:flex; flex-direction:column; gap:var(--s-2); }
+
+.ins-funnel-row{
+  display:grid;
+  grid-template-columns:120px 1fr;
+  align-items:center;
+  gap:var(--s-3);
+}
+@media (max-width:480px){
+  .ins-funnel-row{ grid-template-columns:88px 1fr; }
+}
+
+.ins-funnel-label{
+  font-size:var(--t-sm); color:var(--ink-2); text-align:right;
+  display:flex; align-items:center; justify-content:flex-end; gap:var(--s-2);
+  white-space:nowrap;
+}
+
+.ins-conv-chip{
+  font-size:var(--t-xs); color:var(--ink-3);
+  background:var(--surface-2); border:1px solid var(--border);
+  border-radius:var(--r-pill); padding:1px 7px;
+  flex-shrink:0;
+}
+
+.ins-funnel-track{
+  display:flex; align-items:center; gap:var(--s-2); flex:1; min-width:0;
+}
+
+/* Runway gives the bar a resolved 100% width context */
+.ins-funnel-runway{
+  flex:1; min-width:0; height:20px; position:relative;
+}
+
+.ins-funnel-bar{
+  height:100%; border-radius:var(--r-sm);
+  background:var(--accent); opacity:.75;
+  min-width:2px;
+  transition:width var(--dur-2) var(--ease);
+}
+
+.ins-funnel-count{
+  font-size:var(--t-sm); font-weight:600; color:var(--ink); flex-shrink:0;
+}
+
+/* ---- At-Risk rows ---- */
+/* Standalone row — does NOT extend .teams-row so the left border override
+   works cleanly. Mirrors .teams-row layout but owns its own border. */
+.ins-risk-row{
+  display:flex; align-items:center; gap:var(--s-3);
+  padding:var(--s-3) var(--s-4);
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:var(--r-md); margin-bottom:var(--s-2);
+  text-decoration:none; color:inherit;
+  transition:background var(--dur-1) var(--ease),
+             border-top-color var(--dur-1) var(--ease),
+             border-right-color var(--dur-1) var(--ease),
+             border-bottom-color var(--dur-1) var(--ease);
+}
+/* On hover only strengthen the 3 non-accent sides; keep left accent. */
+.ins-risk-row:hover{
+  border-top-color:var(--border-strong);
+  border-right-color:var(--border-strong);
+  border-bottom-color:var(--border-strong);
+  background:var(--surface-2);
+}
+
+.ins-chip-risk-high{
+  background:var(--accent-tint); color:var(--accent);
+}
+.ins-chip-risk-med{
+  background:var(--surface-2); color:var(--ink-3);
+}
+
+.ins-all-clear{
+  display:flex; align-items:center; gap:var(--s-2);
+  padding:var(--s-3) var(--s-4);
+  background:var(--surface-2); border-radius:var(--r-md);
+  font-size:var(--t-sm); color:var(--ink-2);
+}
+.ins-all-clear-glyph{
+  font-size:1rem; color:var(--accent); flex-shrink:0;
+}
+
+/* ---- Activity Heatmap ---- */
+.ins-hm-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+.ins-hm-header,
+.ins-hm-row{
+  display:flex; align-items:center; gap:var(--s-2); margin-bottom:3px;
+}
+
+.ins-hm-name-spacer,
+.ins-hm-name{
+  width:140px; flex-shrink:0;
+  font-size:var(--t-xs); color:var(--ink-2); overflow:hidden;
+  white-space:nowrap; text-overflow:ellipsis;
+  text-decoration:none;
+}
+.ins-hm-name:hover{ color:var(--accent); }
+
+@media (max-width:520px){
+  .ins-hm-name,
+  .ins-hm-name-spacer{ width:90px; }
+}
+
+.ins-hm-grid{
+  display:flex; gap:3px; align-items:center; flex-shrink:0;
+}
+
+.ins-hm-month-row .ins-hm-month{
+  width:11px; flex-shrink:0;
+  font-size:var(--t-xs); color:var(--ink-muted); white-space:nowrap;
+  overflow:visible; text-indent:0; line-height:1;
+}
+
+/* The actual activity cells */
+.ins-hm-cell{
+  width:11px; height:11px; border-radius:2px; flex-shrink:0;
+  background:var(--surface-3);
+  transition:opacity var(--dur-1);
+}
+.ins-hm-cell:hover{ opacity:.75; }
+
+/* Level fill using accent channel so it respects user accent color */
+.ins-hm-l0{ background:var(--surface-3); }
+.ins-hm-l1{ background:var(--accent); opacity:.25; }
+.ins-hm-l2{ background:var(--accent); opacity:.55; }
+.ins-hm-l3{ background:var(--accent); opacity:.90; }
+
+.ins-hm-footer{ margin-top:var(--s-3); }
+
+.ins-hm-legend{
+  display:flex; align-items:center; gap:6px;
+  font-size:var(--t-xs); color:var(--ink-3);
+}
+.ins-hm-legend .ins-hm-cell{ cursor:default; }
