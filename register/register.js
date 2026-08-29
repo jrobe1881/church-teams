@@ -1,4 +1,4 @@
-/* /teams/register/register.js — Create a new church. Caller becomes church_admin. */
+/* /register/register.js — Create a new church. Caller becomes church_admin. */
 (function(){
   var root = document.getElementById('registerRoot');
   function esc(s){ return (window.TeamsCtx && window.TeamsCtx.esc) ? window.TeamsCtx.esc(s) : String(s == null ? '' : s); }
@@ -34,7 +34,7 @@
       '<p class="teams-sub">You will become the church admin. Share the invite link with teachers once your church is set up.</p>' +
       '<div class="teams-card">' +
         '<div class="teams-field"><label for="regName">Church name</label><input id="regName" type="text" placeholder="Redwood Apostolic Fellowship" required /></div>' +
-        '<div class="teams-field"><label for="regSlug">Slug</label><input id="regSlug" type="text" placeholder="redwood" autocapitalize="off" autocomplete="off" /><div class="teams-hint" id="regSlugPreview">bibleparlor.com/teams/join/?slug=</div></div>' +
+        '<div class="teams-field"><label for="regSlug">Slug</label><input id="regSlug" type="text" placeholder="redwood" autocapitalize="off" autocomplete="off" /><div class="teams-hint" id="regSlugPreview">churchteams.tech/join/?slug=</div></div>' +
         '<div class="teams-field"><label for="regTz">Timezone</label><select id="regTz"></select></div>' +
         '<div class="teams-field"><label for="regPassword">Join password</label><input id="regPassword" type="text" placeholder="Optional. Leave blank for an open church." autocomplete="off" /></div>' +
         '<div class="teams-checkbox-row"><input type="checkbox" id="regApproval" /><label for="regApproval">Require admin approval for new joiners</label></div>' +
@@ -62,7 +62,7 @@
       updatePreview();
     });
     function updatePreview(){
-      slugPreview.textContent = 'bibleparlor.com/teams/join/?slug=' + (slugify(slugInput.value) || '');
+      slugPreview.textContent = 'churchteams.tech/join/?slug=' + (slugify(slugInput.value) || '');
     }
 
     var btn = document.getElementById('regSubmitBtn');
@@ -90,7 +90,7 @@
         var data = res.data || {};
         try { (window.safeLS || localStorage).setItem('teams_active_church_v1', data.church_id || ''); } catch(e){}
         try { (window.safeLS || localStorage).setItem('teams_new_church_toast', JSON.stringify({ slug: data.slug || slug, at: Date.now() })); } catch(e){}
-        window.TeamsCtx.reloadMemberships().then(function(){ location.href = '/teams/'; });
+        window.TeamsCtx.reloadMemberships().then(function(){ location.href = '/dashboard/'; });
       });
     });
   }

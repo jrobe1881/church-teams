@@ -1,14 +1,47 @@
-/* /teams/join/join.js — Standalone join screen at /teams/join/ (and /teams/join/?slug=).
-   Shares the same rendering logic as the inline join-first view on /teams/,
-   exposed here as window.TeamsJoin.renderInto(mountEl) so both pages stay
-   in sync without duplicating markup. */
+/* /join/join.js — Join screen at /join/ (and /join/?slug=). */
 (function(){
   function esc(s){ return (window.TeamsCtx && window.TeamsCtx.esc) ? window.TeamsCtx.esc(s) : String(s == null ? '' : s); }
 
   function renderInto(root){
     var user = window.TeamsCtx.user;
+
+    /* If not signed in, show a prompt with a sign-in button instead of the full form. */
+    if (!user) {
+      root.innerHTML =
+        '<div class="teams-empty" style="padding-top:var(--s-12)">' +
+          '<span class="teams-empty-glyph" aria-hidden="true">\u2756</span>' +
+          '<h2>Sign in to join your church</h2>' +
+          '<p>You need to sign in before you can request to join a church team.</p>' +
+          '<button class="teams-btn" id="joinSignInBtn" type="button">Sign in</button>' +
+        '</div>' +
+        '<hr class="teams-divider" style="margin-top:var(--s-6)" />' +
+        '<p class="teams-sub" style="margin-bottom:var(--s-2)">Starting a new church?</p>' +
+        '<a class="teams-link" href="/register/">Register here</a>';
+      var signInBtn = document.getElementById('joinSignInBtn');
+      if (signInBtn) signInBtn.addEventListener('click', function(){
+        if (window.CloudAccount) window.CloudAccount.openModal('signin');
+      });
+      /* Re-render when the user signs in. */
+      if (window.CloudAccount && window.CloudAccount.onAuthChange) {
+        var unsub = window.CloudAccount.onAuthChange(function(u){
+          if (u) {
+            unsub && unsub();
+            window.TeamsCtx.reloadMemberships().then(function(){
+              if (window.TeamsCtx.hasTeamsAccess) {
+                /* User already has an active membership — go straight to the dashboard. */
+                location.href = '/dashboard/';
+              } else {
+                /* Show the join form so they can enter a church slug. */
+                renderInto(root);
+              }
+            });
+          }
+        });
+      }
+      return;
+    }
+
     root.innerHTML =
-      (!user ? '<div class="teams-error" style="margin-bottom:var(--s-4)">Sign in first, then request to join.</div>' : '') +
       '<h2 class="teams-lede">Join your church</h2>' +
       '<p class="teams-sub">Enter your church\u2019s slug to request access. Your church admin will confirm any password or approval requirements.</p>' +
       '<div class="teams-card" style="margin-bottom:var(--s-6)">' +
@@ -21,7 +54,7 @@
       '</div>' +
       '<hr class="teams-divider" />' +
       '<p class="teams-sub" style="margin-bottom:var(--s-2)">Starting a new church?</p>' +
-      '<a class="teams-link" href="/teams/register/">Register here</a>';
+      '<a class="teams-link" href="/register/">Register here</a>';
 
     var slugInput = document.getElementById('joinSlug');
     var qs = new URLSearchParams(location.search);
@@ -79,7 +112,7 @@
             }
             return;
           }
-          window.TeamsCtx.reloadMemberships().then(function(){ location.href = '/teams/'; });
+          window.TeamsCtx.reloadMemberships().then(function(){ location.href = '/dashboard/'; });
         });
       };
       if (foundChurch && foundChurch.slug === slug) { doJoin(foundChurch); return; }
