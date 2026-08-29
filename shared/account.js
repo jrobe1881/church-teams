@@ -555,9 +555,6 @@
       var adminLink = isAdmin()
         ? '<a class="acct-admin-link" id="acctAdminLink" href="' + adminHref() + '"><span class="acct-ic">\u2699</span>Admin console</a>'
         : '';
-      var mailLink = currentMailbox
-        ? '<a class="acct-admin-link" id="acctMailLink" href="/mail/" title="' + esc(currentMailbox.address||'') + '"><span class="acct-ic">\u2709</span>Mail</a>'
-        : '';
       elDd.innerHTML =
         '<div class="acct-email">' + esc(currentUser.email||'') + '</div>' +
         '<div class="acct-status ' + st.cls + '" id="acctStatus">' +
@@ -565,8 +562,7 @@
           '<span class="lbl">' + esc(st.lbl) + '</span>' +
           (st.sub ? '<span class="sub">' + esc(st.sub) + '</span>' : '') +
         '</div>' +
-        '<a class="acct-admin-link" id="acctProfileLink" href="/account/"><span class="acct-ic">\u25CB</span>Profile</a>' +
-        mailLink +
+        '<a class="acct-admin-link" id="acctProfileLink" href="/profile/"><span class="acct-ic">\u25CB</span>Profile</a>' +
         adminLink +
         '<button id="acctSignOutBtn" type="button">Sign Out</button>' +
         '<div class="acct-tip">Your notes save automatically as you work.</div>';

@@ -52,8 +52,8 @@ a.teams-card{ display:block; color:inherit; }
 @media (max-width:720px){ .teams-grid{ grid-template-columns:1fr; } }
 
 .teams-card .teams-card-num{ font-family:var(--font-serif); font-size:var(--t-3xl); font-weight:500; line-height:1; margin:0 0 var(--s-1); }
-.teams-card .teams-card-label{ font-weight:600; font-size:var(--t-md); margin:0 0 4px; }
-.teams-card .teams-card-desc{ color:var(--ink-3); font-size:var(--t-xs); margin:0; }
+.teams-card .teams-card-label{ font-weight:600; font-size:var(--t-md); margin:0 0 4px; overflow-wrap:break-word; word-break:break-word; }
+.teams-card .teams-card-desc{ color:var(--ink-3); font-size:var(--t-xs); margin:0; overflow-wrap:break-word; word-break:break-word; }
 .teams-card.is-overdue{ border-left:3px solid var(--accent); }
 .teams-card.is-pending{ background:var(--accent-tint); }
 
@@ -339,3 +339,4 @@ main.hub-content{ padding-bottom:84px; }
 
 /* ---------- ChurchTeams: hide Bible Parlor-only topbar items ---------- */
 #bpNotif { display: none !important; }
+.bp-qj-fab { display: none !important; }
