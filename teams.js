@@ -178,12 +178,65 @@
     return html;
   }
 
+  /* ── Nav loading overlay ────────────────────────────────────────────────────
+     Injects a full-screen overlay with a spinning ❖ diamond.
+     - On page ENTER: overlay is visible immediately, then fades out once
+       the body finishes its page-in animation.
+     - On tab tap (EXIT): overlay reappears before navigation so the user
+       sees the spinner instead of a black flash while the next page loads. */
+  var _loaderEl = null;
+
+  function getLoader(){
+    if (_loaderEl && _loaderEl.parentNode) return _loaderEl;
+    _loaderEl = document.createElement('div');
+    _loaderEl.className = 'teams-nav-loader';
+    _loaderEl.setAttribute('aria-hidden', 'true');
+    _loaderEl.innerHTML = '<span class="teams-nav-loader__diamond">❖</span>';
+    document.body.appendChild(_loaderEl);
+    return _loaderEl;
+  }
+
+  function showLoader(){
+    var el = getLoader();
+    el.classList.remove('teams-nav-loader--done');
+    el.style.opacity = '1';
+    el.style.transition = 'none'; // instant show
+  }
+
+  function hideLoader(){
+    var el = getLoader();
+    // Re-enable transition then fade out.
+    el.style.transition = '';
+    el.classList.add('teams-nav-loader--done');
+    // Remove from DOM after transition so it can't block taps.
+    setTimeout(function(){
+      if (el.parentNode) el.parentNode.removeChild(el);
+      _loaderEl = null;
+    }, 220);
+  }
+
+  function injectNavLoader(){
+    // Show the overlay immediately so it covers the blank page during paint.
+    if (document.body) {
+      getLoader(); // creates and appends
+    }
+    // Dismiss once the body page-in animation finishes.
+    var body = document.body;
+    function onPageIn(){
+      // Small rAF delay so the content is actually painted before we reveal it.
+      requestAnimationFrame(function(){ requestAnimationFrame(hideLoader); });
+    }
+    body.addEventListener('animationend', onPageIn, { once:true });
+    // Hard fallback: if animation never fires (e.g. reduced-motion or CSS not
+    // loaded yet), dismiss after 600ms.
+    setTimeout(function(){
+      if (_loaderEl) hideLoader();
+    }, 600);
+  }
+
   /* ── Smooth navigation ───────────────────────────────────────────────────
-     Intercept tabbar link clicks: apply a leaving animation on <body>,
-     then navigate after it completes. Masks the hard white-frame flash that
-     browsers show during a full-page load on mobile.
-     Also persists the current active tab key to sessionStorage so we can
-     render a placeholder tabbar on the very next page before TeamsCtx resolves. */
+     Intercept tabbar link clicks: show the loading overlay, fade out the
+     body, then navigate. The overlay persists into the next page load. */
   function wireNavTransitions(){
     document.addEventListener('click', function(e){
       var link = e.target.closest('.teams-tabbar a[href]');
@@ -198,25 +251,24 @@
       var body = document.body;
       // Persist destination hint for skeleton tabbar on next page.
       try { sessionStorage.setItem('teams_nav_dest', href); } catch(_){}
-      // Reduce-motion: skip animation.
+      // Reduce-motion: skip animation, navigate immediately.
       var noMotion = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
       if (noMotion) { location.href = href; return; }
+      // Show spinner overlay immediately, then fade body out, then navigate.
+      showLoader();
       body.classList.add('teams-leaving');
-      // Navigate after animation (~140ms) + one extra frame buffer.
       var done = false;
       function go(){ if (!done){ done=true; location.href = href; } }
       body.addEventListener('animationend', go, { once:true });
-      setTimeout(go, 200); // hard fallback
+      setTimeout(go, 220); // hard fallback
     });
   }
 
   /* Inject a skeleton tabbar placeholder into #teamsTabbarSlot immediately
-     so there is no empty-bar flash while TeamsCtx.ready resolves.
-     Uses the last-known tab set stored in sessionStorage. */
+     so there is no empty-bar flash while TeamsCtx.ready resolves. */
   function injectSkeletonTabbar(){
     var slot = document.getElementById('teamsTabbarSlot');
     if (!slot) return;
-    // Already has real content (e.g. fast path, or double-call guard).
     if (slot.querySelector('.teams-tabbar')) return;
     slot.innerHTML = '<div class="teams-tabbar-skel" aria-hidden="true"></div>';
   }
@@ -235,6 +287,13 @@
   }
 
   init();
+
+  // Show loading overlay immediately on every page enter, dismiss on paint.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectNavLoader);
+  } else {
+    injectNavLoader();
+  }
 
   // Inject skeleton bar immediately (before auth resolves) to avoid pop-in.
   if (document.readyState === 'loading') {

@@ -4,26 +4,62 @@
    reference existing --tokens. */
 
 /* ── Page transition ─────────────────────────────────────────────────────────
-   body fades in on every page load; .teams-leaving fades it back out before
-   the browser navigates, masking the hard white-frame flash on iOS/Android. */
+   body fades in on every page load. .teams-leaving fades it out before
+   navigating, masking the hard white-frame flash on iOS/Android. */
 body.hub-body{
-  animation:teams-page-in 180ms ease-out both;
+  animation:teams-page-in 200ms ease-out both;
 }
 @keyframes teams-page-in{
-  from{ opacity:0; transform:translateY(4px); }
-  to  { opacity:1; transform:translateY(0); }
+  from{ opacity:0; }
+  to  { opacity:1; }
 }
 body.hub-body.teams-leaving{
-  animation:teams-page-out 140ms ease-in both !important;
+  animation:teams-page-out 150ms ease-in both !important;
   pointer-events:none;
 }
 @keyframes teams-page-out{
-  from{ opacity:1; transform:translateY(0); }
-  to  { opacity:0; transform:translateY(-4px); }
+  from{ opacity:1; }
+  to  { opacity:0; }
 }
 @media (prefers-reduced-motion: reduce){
   body.hub-body{ animation:none; }
   body.hub-body.teams-leaving{ animation:none !important; opacity:0; }
+}
+
+/* ── Navigation loading overlay ──────────────────────────────────────────────
+   A full-screen surface-coloured overlay with a spinning ❖ diamond that
+   appears instantly when the user taps a tab and fades out once the new
+   page is painted. Keeps the background theme-correct so there's no flash. */
+.teams-nav-loader{
+  position:fixed; inset:0; z-index:99000;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--bg, #050505);
+  opacity:1;
+  transition:opacity 180ms ease;
+  pointer-events:none;
+}
+/* Fade-out state — added by JS once the new page's content is ready */
+.teams-nav-loader.teams-nav-loader--done{
+  opacity:0;
+}
+/* The diamond glyph */
+.teams-nav-loader__diamond{
+  font-size:2.2rem;
+  line-height:1;
+  color:var(--accent, #7a1f2b);
+  animation:teams-diamond-spin 900ms cubic-bezier(.4,.1,.6,.9) infinite;
+  will-change:transform;
+  user-select:none;
+}
+@keyframes teams-diamond-spin{
+  0%  { transform:rotate(0deg)   scale(1);    opacity:.9; }
+  25% { transform:rotate(90deg)  scale(1.08); opacity:1;  }
+  50% { transform:rotate(180deg) scale(1);    opacity:.9; }
+  75% { transform:rotate(270deg) scale(1.08); opacity:1;  }
+  100%{ transform:rotate(360deg) scale(1);    opacity:.9; }
+}
+@media (prefers-reduced-motion: reduce){
+  .teams-nav-loader__diamond{ animation:none; opacity:.7; }
 }
 
 /* ── Skeleton tabbar placeholder (shown before JS renders real tabs) ─────────
