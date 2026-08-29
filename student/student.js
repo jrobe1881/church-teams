@@ -75,6 +75,23 @@
 
   function fmtDate(d){ return d ? new Date(d).toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : ''; }
 
+  /* Render a contextual SOP suggestion banner when TeamsSOP is loaded and has
+     SOPs relevant to this prospect's current status. */
+  function renderSopBanner(status){
+    if (!window.TeamsSOP) return '';
+    var sops = window.TeamsSOP.forStatus(status);
+    if (!sops || !sops.length) return '';
+    var studentId = state.student ? state.student.id : '';
+    var links = sops.slice(0, 3).map(function(s){
+      return '<a class="teams-btn teams-btn-sm teams-btn-secondary" href="/teams/sop/?from=' + esc(studentId) + '" style="font-size:var(--t-xs)">' +
+        '\u25F7 ' + esc(s.title) + '</a>';
+    }).join('');
+    return '<div style="margin-top:10px;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+      '<span style="font-size:var(--t-xs);color:var(--ink-3);flex:none">Related SOPs:</span>' +
+      links +
+    '</div>';
+  }
+
   function renderHeader(){
     var s = state.student;
     document.title = (s.full_name || 'Prospect') + ' \u2014 Teams \u2014 Bible Parlor';
@@ -109,6 +126,7 @@
             '<button class="teams-btn teams-btn-sm" id="scheduleStudyBtn" type="button">Schedule</button>' +
             (window.TeamsCtx.isChurchAdmin ? '<button class="teams-btn teams-btn-sm teams-btn-secondary" id="deleteStudentBtn" type="button" style="color:#7a1f2b;border-color:#e5c7cb">Delete prospect</button>' : '') +
           '</div>' +
+          renderSopBanner(s.status) +
         '</div>' +
         '<div style="display:flex;gap:6px">' + contact.join('') + '</div>' +
       '</div>' +
