@@ -27,17 +27,18 @@
 }
 @media (max-width:520px){
   .teams-back-link{ width:36px; height:36px; font-size:24px; }
-}
-@media (max-width:520px){
   .teams-subbar{ padding:var(--s-2) var(--s-4); }
   .teams-subbar h1{ font-size:var(--t-lg); }
 }
 
 /* ---------- Page shell ---------- */
-.teams-page{ max-width:900px; margin:0 auto; padding:var(--s-6) var(--s-5) var(--s-16); }
+/* --s-16 is 64px but tabbar can be up to 82px (48px + 8+8 + 18px safe-area).
+   Use 96px (--s-10 + --s-8 + --s-6 ≈ 96px) as bottom clearance so last card
+   always scrolls fully into view above the bar. */
+.teams-page{ max-width:900px; margin:0 auto; padding:var(--s-6) var(--s-5) 96px; }
 .teams-page-wide{ max-width:1100px; }
 @media (max-width:720px){
-  .teams-page{ padding:var(--s-4) var(--s-4) var(--s-16); }
+  .teams-page{ padding:var(--s-4) var(--s-4) 96px; }
 }
 
 /* ---------- Cards ---------- */
@@ -137,8 +138,11 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
   color:var(--accent); padding:var(--s-2) var(--s-3); background:var(--accent-tint);
   border-radius:var(--r-sm); font-size:var(--t-sm); margin-top:var(--s-2);
 }
+/* Toast sits above the tabbar: tabbar ~56px + 8px gap + safe-area */
 .teams-toast{
-  position:fixed; bottom:calc(var(--s-6) + env(safe-area-inset-bottom)); left:50%;
+  position:fixed;
+  bottom:calc(64px + env(safe-area-inset-bottom, 0px) + var(--s-3));
+  left:50%;
   transform:translateX(-50%) translateY(12px); background:var(--ink); color:var(--surface);
   padding:12px 18px; border-radius:var(--r-md); font-size:var(--t-sm); box-shadow:var(--shadow-3);
   z-index:9999; opacity:0; pointer-events:none; transition:opacity var(--dur-2) var(--ease), transform var(--dur-2) var(--ease);
@@ -168,12 +172,10 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
 .teams-tabbar{
   display:flex;
   position:fixed; bottom:0; left:0; right:0;
-  padding:var(--s-2) var(--s-5) calc(var(--s-2) + env(safe-area-inset-bottom));
+  padding:var(--s-2) var(--s-5) calc(var(--s-2) + env(safe-area-inset-bottom, 0px));
   background:var(--surface); border-top:1px solid var(--border);
   justify-content:center; align-items:center; gap:var(--s-1);
-  z-index:8500; overflow-x:auto;
-  /* Slight blur on supported browsers to let the content below feel visible */
-  backdrop-filter:blur(0px);
+  z-index:8500; overflow-x:visible;
 }
 .teams-tabbar a{
   display:flex; flex-direction:row; align-items:center; gap:6px;
@@ -187,7 +189,7 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
 .teams-tabbar a .teams-tab-glyph{ font-size:1.05rem; line-height:1; }
 .teams-tabbar a[aria-current="page"]{ color:var(--accent); background:var(--accent-tint); font-weight:600; }
 .teams-tabbar a[aria-current="page"]::after{
-  content:''; position:absolute; bottom:-8px; left:50%; transform:translateX(-50%);
+  content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%);
   width:20px; height:2px; border-radius:1px; background:var(--accent);
 }
 .teams-tabbar a:active{ background:var(--surface-2); }
@@ -200,17 +202,44 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
   margin-left:2px;
 }
 
-/* Reserve space so page content doesn't hide behind the tabbar. */
-main.hub-content{ padding-bottom:84px; }
+/* Short label is only for mobile; hidden on desktop. */
+.teams-tabbar a .teams-tab-label-short{ display:none; }
 
-/* Mobile: stacked labels, taller tap targets, spread across width. */
+/* Reserve space so page content doesn't hide behind the tabbar.
+   56px bar height + 8px top padding + safe-area-inset-bottom (up to ~34px on iPhone) */
+main.hub-content{ padding-bottom:calc(72px + env(safe-area-inset-bottom, 0px)); }
+
+/* ── Mobile tabbar: icon-only stack, equal-width items, no overflow ─────── */
 @media (max-width:720px){
-  .teams-tabbar{ padding-left:var(--s-3); padding-right:var(--s-3); justify-content:space-around; }
-  .teams-tabbar a{
-    flex-direction:column; gap:2px;
-    min-width:44px; min-height:44px; padding:6px 4px;
-    font-size:var(--t-xs); border-radius:var(--r-sm);
+  .teams-tabbar{
+    padding-left:max(var(--s-2), env(safe-area-inset-left, 0px));
+    padding-right:max(var(--s-2), env(safe-area-inset-right, 0px));
+    gap:0;
+    overflow-x:visible;
   }
+  .teams-tabbar a{
+    flex:1;                     /* fill bar evenly — no fixed min-width */
+    flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:2px;
+    min-height:48px;            /* WCAG-friendly tap target */
+    padding:6px 2px;
+    font-size:.68rem;           /* compact but legible label */
+    font-weight:500;
+    border-radius:var(--r-sm);
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .teams-tabbar a .teams-tab-glyph{ font-size:1.2rem; line-height:1; }
+  /* Short label — shown via data-short attribute on the <span> child */
+  .teams-tabbar a .teams-tab-label{ display:none; }
+  .teams-tabbar a .teams-tab-label-short{ display:block; }
+}
+
+/* Very small phones (≤ 360px) — slightly smaller glyph */
+@media (max-width:360px){
+  .teams-tabbar a{ font-size:.6rem; }
+  .teams-tabbar a .teams-tab-glyph{ font-size:1.05rem; }
 }
 
 /* ---------- Modal / sheet ---------- */
@@ -236,7 +265,10 @@ main.hub-content{ padding-bottom:84px; }
 
 /* ---------- FAB (mobile intake / new) ---------- */
 .teams-fab{
-  position:fixed; right:var(--s-4); bottom:calc(84px + var(--s-4)); z-index:8600;
+  position:fixed; right:var(--s-4);
+  /* Clear tabbar: 56px bar + safe-area + 16px gap */
+  bottom:calc(56px + env(safe-area-inset-bottom, 0px) + var(--s-4));
+  z-index:8600;
   width:52px; height:52px; border-radius:50%; background:var(--accent); color:#fff;
   display:flex; align-items:center; justify-content:center; font-size:1.4rem; box-shadow:var(--shadow-3);
   border:none; cursor:pointer;

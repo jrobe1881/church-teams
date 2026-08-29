@@ -151,27 +151,28 @@
   function bottomTabs(activeKey, opts){
     opts = opts || {};
     var tabs = [
-      { key:'dashboard', label:'Dashboard', glyph:'\u2756', href:'/' },
-      { key:'students',  label:'Prospects',  glyph:'\u25A4', href:'/students/' },
-      { key:'schedule',  label:'Schedule',  glyph:'\u25F7', href:'/schedule/' },
-      { key:'notices',   label:'Notices',   glyph:'\u25A3', href:'/notices/' },
-      { key:'sop',       label:'SOP',       glyph:'\u2637', href:'/sop/' },
-      { key:'tasks',     label:'Tasks',     glyph:'\u2611', href:'/tasks/', badge: opts.tasksBadge || 0 }
+      { key:'dashboard', label:'Dashboard', short:'Home',    glyph:'\u2756', href:'/' },
+      { key:'students',  label:'Prospects', short:'People',  glyph:'\u25A4', href:'/students/' },
+      { key:'schedule',  label:'Schedule',  short:'Sched',   glyph:'\u25F7', href:'/schedule/' },
+      { key:'notices',   label:'Notices',   short:'Notice',  glyph:'\u25A3', href:'/notices/' },
+      { key:'sop',       label:'SOP',       short:'SOP',     glyph:'\u2637', href:'/sop/' },
+      { key:'tasks',     label:'Tasks',     short:'Tasks',   glyph:'\u2611', href:'/tasks/', badge: opts.tasksBadge || 0 }
     ];
     // Church admins (and site admin) see Baptisms, Insights and Admin tabs.
     if (ctx.isChurchAdmin || ctx.isSiteAdmin) {
-      tabs.push({ key:'baptisms', label:'Baptisms', glyph:'\u25CE', href:'/baptisms/' });
-      tabs.push({ key:'insights', label:'Insights', glyph:'\u25D1', href:'/insights/' });
+      tabs.push({ key:'baptisms', label:'Baptisms', short:'Bapt',    glyph:'\u25CE', href:'/baptisms/' });
+      tabs.push({ key:'insights', label:'Insights', short:'Insight', glyph:'\u25D1', href:'/insights/' });
     }
     if (ctx.isChurchAdmin) {
-      tabs.push({ key:'admin', label:'Admin', glyph:'\u25C8', href:'/admin/', badge: opts.adminBadge || 0 });
+      tabs.push({ key:'admin', label:'Admin', short:'Admin', glyph:'\u25C8', href:'/admin/', badge: opts.adminBadge || 0 });
     }
     var html = '<nav class="teams-tabbar" aria-label="Teams navigation">' + tabs.map(function(t){
       var cur = t.key === activeKey;
       var badgeHtml = (t.badge && t.badge > 0) ? '<span class="teams-tab-badge" aria-label="' + t.badge + ' pending">' + t.badge + '</span>' : '';
       return '<a href="' + t.href + '"' + (cur ? ' aria-current="page"' : '') + '>' +
         '<span class="teams-tab-glyph" aria-hidden="true">' + t.glyph + '</span>' +
-        '<span>' + esc(t.label) + badgeHtml + '</span>' +
+        '<span class="teams-tab-label">' + esc(t.label) + badgeHtml + '</span>' +
+        '<span class="teams-tab-label-short" aria-hidden="true">' + esc(t.short) + badgeHtml + '</span>' +
       '</a>';
     }).join('') + '</nav>';
     return html;
