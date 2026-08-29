@@ -178,6 +178,49 @@
     return html;
   }
 
+  /* ── Smooth navigation ───────────────────────────────────────────────────
+     Intercept tabbar link clicks: apply a leaving animation on <body>,
+     then navigate after it completes. Masks the hard white-frame flash that
+     browsers show during a full-page load on mobile.
+     Also persists the current active tab key to sessionStorage so we can
+     render a placeholder tabbar on the very next page before TeamsCtx resolves. */
+  function wireNavTransitions(){
+    document.addEventListener('click', function(e){
+      var link = e.target.closest('.teams-tabbar a[href]');
+      if (!link) return;
+      var href = link.getAttribute('href');
+      if (!href || href === '#') return;
+      // Same page — no transition needed.
+      var dest = href.replace(/\/$/, '') || '/';
+      var cur  = location.pathname.replace(/\/$/, '') || '/';
+      if (dest === cur) return;
+      e.preventDefault();
+      var body = document.body;
+      // Persist destination hint for skeleton tabbar on next page.
+      try { sessionStorage.setItem('teams_nav_dest', href); } catch(_){}
+      // Reduce-motion: skip animation.
+      var noMotion = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+      if (noMotion) { location.href = href; return; }
+      body.classList.add('teams-leaving');
+      // Navigate after animation (~140ms) + one extra frame buffer.
+      var done = false;
+      function go(){ if (!done){ done=true; location.href = href; } }
+      body.addEventListener('animationend', go, { once:true });
+      setTimeout(go, 200); // hard fallback
+    });
+  }
+
+  /* Inject a skeleton tabbar placeholder into #teamsTabbarSlot immediately
+     so there is no empty-bar flash while TeamsCtx.ready resolves.
+     Uses the last-known tab set stored in sessionStorage. */
+  function injectSkeletonTabbar(){
+    var slot = document.getElementById('teamsTabbarSlot');
+    if (!slot) return;
+    // Already has real content (e.g. fast path, or double-call guard).
+    if (slot.querySelector('.teams-tabbar')) return;
+    slot.innerHTML = '<div class="teams-tabbar-skel" aria-hidden="true"></div>';
+  }
+
   function pendingCount(){
     var sb = getSb();
     if (!sb || !ctx.activeChurchId || !ctx.isChurchAdmin) return Promise.resolve(0);
@@ -192,6 +235,20 @@
   }
 
   init();
+
+  // Inject skeleton bar immediately (before auth resolves) to avoid pop-in.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectSkeletonTabbar);
+  } else {
+    injectSkeletonTabbar();
+  }
+
+  // Wire transition clicks after DOM is interactive.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireNavTransitions);
+  } else {
+    wireNavTransitions();
+  }
 
   window.TeamsCtx = {
     ready: ready,

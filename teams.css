@@ -3,6 +3,43 @@
    Do not invent new colors, radii, or fonts here — everything must
    reference existing --tokens. */
 
+/* ── Page transition ─────────────────────────────────────────────────────────
+   body fades in on every page load; .teams-leaving fades it back out before
+   the browser navigates, masking the hard white-frame flash on iOS/Android. */
+body.hub-body{
+  animation:teams-page-in 180ms ease-out both;
+}
+@keyframes teams-page-in{
+  from{ opacity:0; transform:translateY(4px); }
+  to  { opacity:1; transform:translateY(0); }
+}
+body.hub-body.teams-leaving{
+  animation:teams-page-out 140ms ease-in both !important;
+  pointer-events:none;
+}
+@keyframes teams-page-out{
+  from{ opacity:1; transform:translateY(0); }
+  to  { opacity:0; transform:translateY(-4px); }
+}
+@media (prefers-reduced-motion: reduce){
+  body.hub-body{ animation:none; }
+  body.hub-body.teams-leaving{ animation:none !important; opacity:0; }
+}
+
+/* ── Skeleton tabbar placeholder (shown before JS renders real tabs) ─────────
+   Keeps the bottom bar from popping in from nothing. */
+.teams-tabbar-skel{
+  display:flex;
+  position:fixed; bottom:0; left:0; right:0;
+  height:calc(56px + env(safe-area-inset-bottom, 0px));
+  background:var(--surface); border-top:1px solid var(--border);
+  z-index:8499;
+  padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+/* Hides itself the moment a real tabbar sibling is rendered */
+.teams-tabbar ~ .teams-tabbar-skel,
+.teams-tabbar-skel:has(~ .teams-tabbar){ display:none; }
+
 /* ---------- Subbar ---------- */
 .teams-subbar{
   position:sticky; top:var(--topbar-h); z-index:8900;
