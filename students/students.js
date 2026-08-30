@@ -88,10 +88,10 @@
     var hasFilter = state.search || state.statusFilter !== 'all' || state.teacherFilter !== 'all';
     var clearBtn = hasFilter ? '<button class="teams-btn teams-btn-sm teams-btn-secondary" id="clearFiltersBtn" type="button" style="white-space:nowrap">Clear filters</button>' : '';
     return '<div style="display:flex;gap:var(--s-3);flex-wrap:wrap;margin-bottom:var(--s-3);align-items:center">' +
-      '<input type="search" id="studentSearch" placeholder="Search prospects\u2026" value="' + esc(state.search) + '" style="flex:1;min-width:180px" />' +
-      '<select id="statusFilter">' + statuses.map(function(st){ return '<option value="' + st + '"' + (state.statusFilter === st ? ' selected' : '') + '>' + (st === 'all' ? 'All statuses' : esc(STATUS_LABELS[st])) + '</option>'; }).join('') + '</select>' +
-      '<select id="teacherFilter"><option value="all">All teachers</option>' + state.teachers.map(function(t){ return '<option value="' + esc(t.id) + '"' + (state.teacherFilter === t.id ? ' selected' : '') + '>' + esc(t.full_name) + '</option>'; }).join('') + '</select>' +
-      '<select id="sortFilter"><option value="newest"' + (state.sortBy === 'newest' ? ' selected' : '') + '>Newest</option><option value="alpha"' + (state.sortBy === 'alpha' ? ' selected' : '') + '>A–Z</option><option value="status"' + (state.sortBy === 'status' ? ' selected' : '') + '>By status</option></select>' +
+      '<input type="search" id="studentSearch" placeholder="Search prospects\u2026" value="' + esc(state.search) + '" style="flex:1;min-width:180px;font-size:16px" />' +
+      '<select id="statusFilter" style="font-size:16px">' + statuses.map(function(st){ return '<option value="' + st + '"' + (state.statusFilter === st ? ' selected' : '') + '>' + (st === 'all' ? 'All statuses' : esc(STATUS_LABELS[st])) + '</option>'; }).join('') + '</select>' +
+      '<select id="teacherFilter" style="font-size:16px"><option value="all">All teachers</option>' + state.teachers.map(function(t){ return '<option value="' + esc(t.id) + '"' + (state.teacherFilter === t.id ? ' selected' : '') + '>' + esc(t.full_name) + '</option>'; }).join('') + '</select>' +
+      '<select id="sortFilter" style="font-size:16px"><option value="newest"' + (state.sortBy === 'newest' ? ' selected' : '') + '>Newest</option><option value="alpha"' + (state.sortBy === 'alpha' ? ' selected' : '') + '>A–Z</option><option value="status"' + (state.sortBy === 'status' ? ' selected' : '') + '>By status</option></select>' +
       clearBtn +
     '</div>' +
     '<p class="teams-result-count">' + (hasFilter ? count + ' of ' + total : total) + ' prospect' + (total === 1 ? '' : 's') + '</p>';

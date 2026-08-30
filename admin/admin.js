@@ -154,11 +154,11 @@
               '<div style="display:grid;grid-template-columns:1fr;gap:6px;margin-top:8px">' +
                 '<label style="display:block">' +
                   '<span class="teams-card-desc" style="display:block;margin-bottom:2px">Mobile (for SMS)</span>' +
-                  '<input class="teams-mem-phone" data-mid="' + esc(m.id) + '" type="tel" inputmode="tel" placeholder="+1 (555) 123-4567" value="' + phoneVal + '" />' +
+                  '<input class="teams-mem-phone" data-mid="' + esc(m.id) + '" type="tel" inputmode="tel" placeholder="+1 (555) 123-4567" value="' + phoneVal + '" style="font-size:16px" />' +
                 '</label>' +
                 '<label style="display:block">' +
                   '<span class="teams-card-desc" style="display:block;margin-bottom:2px">Email</span>' +
-                  '<input class="teams-mem-email" data-mid="' + esc(m.id) + '" type="email" placeholder="you@example.com" value="' + emailVal + '" />' +
+                  '<input class="teams-mem-email" data-mid="' + esc(m.id) + '" type="email" placeholder="you@example.com" value="' + emailVal + '" style="font-size:16px" />' +
                 '</label>' +
                 '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
                   '<button class="teams-btn teams-btn-sm" data-save-contact="' + esc(m.id) + '" type="button">Save contact</button>' +
@@ -484,9 +484,9 @@
     // slot may be a persisted row (has id) or a draft (no id).
     var id = slot.id || '';
     return '<div class="teams-row" data-slot-row="' + esc(id) + '" style="gap:8px;flex-wrap:wrap">' +
-      '<input class="wdSlotLabel" type="text" placeholder="Label (optional)" value="' + esc(slot.label || '') + '" style="flex:2;min-width:140px" />' +
-      '<select class="wdSlotDow" style="flex:1;min-width:140px">' + dayOptionsHtml(slot.dow) + '</select>' +
-      '<input class="wdSlotTime" type="time" value="' + esc(timeVal(slot.service_time)) + '" style="flex:0 0 120px" />' +
+      '<input class="wdSlotLabel" type="text" placeholder="Label (optional)" value="' + esc(slot.label || '') + '" style="flex:2;min-width:140px;font-size:16px" />' +
+      '<select class="wdSlotDow" style="flex:1;min-width:140px;font-size:16px">' + dayOptionsHtml(slot.dow) + '</select>' +
+      '<input class="wdSlotTime" type="time" value="' + esc(timeVal(slot.service_time)) + '" style="flex:0 0 120px;font-size:16px" />' +
       '<button class="teams-btn teams-btn-sm teams-btn-secondary wdSlotRemove" type="button" aria-label="Remove">Remove</button>' +
     '</div>';
   }
@@ -502,8 +502,8 @@
 
       '<div class="teams-field"><label>Cultivation <span class="teams-card-desc" style="font-weight:400">(one per week)</span></label>' +
         '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-          '<select id="wdCultDow" style="flex:1;min-width:140px">' + dayOptionsHtml(s.cultivation_dow) + '</select>' +
-          '<input id="wdCultTime" type="time" value="' + esc(timeVal(s.cultivation_time)) + '" style="flex:0 0 120px" />' +
+          '<select id="wdCultDow" style="flex:1;min-width:140px;font-size:16px">' + dayOptionsHtml(s.cultivation_dow) + '</select>' +
+          '<input id="wdCultTime" type="time" value="' + esc(timeVal(s.cultivation_time)) + '" style="flex:0 0 120px;font-size:16px" />' +
         '</div>' +
       '</div>' +
 

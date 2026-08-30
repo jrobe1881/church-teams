@@ -189,7 +189,7 @@
       }).join('') +
     '</div>' +
     '<div style="margin-bottom:var(--s-4)">' +
-      '<input type="search" id="sopSearch" placeholder="Search SOPs\u2026" value="' + esc(state.search) + '" style="width:100%" />' +
+      '<input type="search" id="sopSearch" placeholder="Search SOPs\u2026" value="' + esc(state.search) + '" style="width:100%;font-size:16px" />' +
     '</div>';
 
     var rows = filtered();
@@ -301,7 +301,7 @@
       '<h2>' + (isEdit ? 'Edit SOP' : 'New SOP') + '</h2>' +
       '<div class="teams-field"><label for="sopTitle">Title</label><input id="sopTitle" type="text" value="' + esc(isEdit ? existing.title : '') + '" /></div>' +
       '<div class="teams-field"><label for="sopCategory">Category</label>' +
-        '<select id="sopCategory">' + catOptions + '</select>' +
+        '<select id="sopCategory" style="font-size:16px">' + catOptions + '</select>' +
         '<div class="teams-hint">Helps teachers find the right procedure quickly.</div>' +
       '</div>' +
       '<div class="teams-field"><label for="sopBody">Body</label>' +
