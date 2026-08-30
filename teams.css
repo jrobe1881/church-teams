@@ -5,9 +5,7 @@
 
 /* ── iOS PWA / WebKit viewport lock ─────────────────────────────────────────
    iOS Safari in standalone PWA mode zooms the visual viewport when a
-   <select> or <input> with font-size < 16px receives focus. The zoom
-   persists after blur, making position:fixed elements (the tabbar) look
-   oversized on every page that renders form controls.
+   <select> or <input> with font-size < 16px receives focus.
 
    Fix: force font-size:16px on EVERY input/select/textarea so iOS never
    triggers the auto-zoom. Also lock text-size-adjust on html AND body. */
@@ -19,6 +17,17 @@ html,body{
    This is the single most important iOS PWA fix. */
 input,select,textarea,button{
   font-size:16px;
+}
+
+/* ── Body scroll lock (mobile drawer) ───────────────────────────────────────
+   iOS Safari ignores overflow:hidden on <body> for touch events. The only
+   reliable cross-browser fix is position:fixed + a saved top offset that
+   teams.js writes before adding this class. width:100% prevents the layout
+   from collapsing to 0 when the body is pulled out of normal flow. */
+body.teams-body-locked{
+  position:fixed;
+  width:100%;
+  overflow-y:scroll; /* keep scrollbar gutter so content doesn't shift */
 }
 
 /* ── Page transition ─────────────────────────────────────────────────────────
@@ -80,41 +89,32 @@ body.hub-body.teams-leaving{
   .teams-nav-loader__diamond{ animation:none; opacity:.7; }
 }
 
-/* ── Tabbar height token ──────────────────────────────────────────────────────
-   --teams-bar-h: the TOTAL rendered bar height including safe-area padding.
-   Used by every element that must clear the bar (content, FAB, toast).
-
-   Desktop (>720px): 8px top + 36px item + 8px bottom + safe-area = 52px + safe-area.
-   Mobile (≤720px):  4px top + 44px item + 4px bottom + safe-area = 52px + safe-area.
-
-   NOTE: safe-area is ADDITIVE (calc), never a max() minimum.
-   On iOS PWA a notched iPhone has safe-area-inset-bottom ≈ 34px.
-   max(4px, 34px) would still give 34px, but calc(4px + 34px) = 38px bottom
-   padding — same result. The real win is predictable total height:
-   52px content + 34px safe-area = 86px total, matching native iOS tab bars. */
+/* ── Sidebar width token ─────────────────────────────────────────────────────
+   --teams-sidebar-w: the rendered sidebar column width on desktop.
+   All rules that must clear the sidebar (main content left margin) use this. */
 :root{
-  --teams-bar-inner:52px;   /* content height, no safe-area */
-  --teams-bar-h:calc(var(--teams-bar-inner) + env(safe-area-inset-bottom, 0px));
+  --teams-sidebar-w:220px;
 }
 
-/* ── Skeleton tabbar placeholder (shown before JS renders real tabs) ─────────
-   Matches the real bar's total height exactly so there's no height pop. */
-.teams-tabbar-skel{
-  display:flex;
-  position:fixed; bottom:0; left:0; right:0;
-  height:var(--teams-bar-h);
-  background:var(--surface); border-top:1px solid var(--border);
-  z-index:8499;
+/* ── Skeleton sidebar placeholder (shown before JS renders real nav) ─────────
+   Takes up the sidebar column on desktop so there's no layout shift.
+   Hidden on mobile — the real nav is a drawer there, not a column. */
+.teams-sidenav-skel{
+  display:block;
+  width:var(--teams-sidebar-w);
+  flex-shrink:0;
 }
-/* Hides itself the moment a real tabbar sibling is rendered */
-.teams-tabbar ~ .teams-tabbar-skel,
-.teams-tabbar-skel:has(~ .teams-tabbar){ display:none; }
+@media (max-width:720px){
+  .teams-sidenav-skel{ display:none !important; }
+}
 
 /* ---------- Subbar ---------- */
 .teams-subbar{
   position:sticky; top:var(--topbar-h); z-index:8900;
   background:var(--surface); border-bottom:1px solid var(--border);
-  padding:var(--s-3) var(--s-5);
+  /* Respect safe-area on notched devices / landscape PWA */
+  padding:var(--s-3) max(var(--s-5), env(safe-area-inset-right, 0px))
+          var(--s-3) max(var(--s-5), env(safe-area-inset-left,  0px));
   display:flex; align-items:center; justify-content:space-between; gap:var(--s-3);
   flex-wrap:wrap;
 }
@@ -133,18 +133,19 @@ body.hub-body.teams-leaving{
   background:var(--surface-2); color:var(--ink); outline:none;
 }
 @media (max-width:520px){
-  .teams-back-link{ width:36px; height:36px; font-size:24px; }
-  .teams-subbar{ padding:var(--s-2) var(--s-4); }
+  .teams-back-link{ width:44px; height:44px; font-size:24px; } /* WCAG 2.5.5 tap target */
+  .teams-subbar{
+    padding:var(--s-2) max(var(--s-4), env(safe-area-inset-right, 0px))
+            var(--s-2) max(var(--s-4), env(safe-area-inset-left,  0px));
+  }
   .teams-subbar h1{ font-size:var(--t-lg); }
 }
 
 /* ---------- Page shell ---------- */
-/* 96px bottom padding gives generous clearance so the last card always scrolls
-   fully into view above the fixed tabbar (--teams-bar-h + safe-area + breathing room). */
-.teams-page{ max-width:900px; margin:0 auto; padding:var(--s-6) var(--s-5) 96px; }
+.teams-page{ max-width:900px; margin:0 auto; padding:var(--s-6) var(--s-5) var(--s-8); }
 .teams-page-wide{ max-width:1100px; }
 @media (max-width:720px){
-  .teams-page{ padding:var(--s-4) var(--s-4) 96px; }
+  .teams-page{ padding:var(--s-4) var(--s-4) var(--s-6); }
 }
 
 /* ---------- Cards ---------- */
@@ -244,10 +245,10 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
   color:var(--accent); padding:var(--s-2) var(--s-3); background:var(--accent-tint);
   border-radius:var(--r-sm); font-size:var(--t-sm); margin-top:var(--s-2);
 }
-/* Toast sits above the tabbar — --teams-bar-h already includes safe-area */
+/* Toast — fixed bottom-center, clear of any safe-area inset */
 .teams-toast{
   position:fixed;
-  bottom:calc(var(--teams-bar-h) + var(--s-3));
+  bottom:calc(var(--s-4) + env(safe-area-inset-bottom, 0px));
   left:50%;
   transform:translateX(-50%) translateY(12px); background:var(--ink); color:var(--surface);
   padding:12px 18px; border-radius:var(--r-md); font-size:var(--t-sm); box-shadow:var(--shadow-3);
@@ -274,146 +275,203 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
 /* Result count line above list */
 .teams-result-count{ font-size:var(--t-xs); color:var(--ink-3); margin-bottom:var(--s-3); }
 
-/* ── Bottom tab bar ──────────────────────────────────────────────────────────
+/* ── Sidebar navigation ──────────────────────────────────────────────────────
    Architecture:
-   · position:fixed, bottom:0 — always flush to the viewport bottom edge.
-   · Inner content height is fixed in PIXELS (no rem/em) so iOS font-scaling,
-     Display Zoom, or PWA standalone mode cannot inflate the bar.
-   · safe-area-inset-bottom is ADDITIVE via calc() — it extends the bar
-     downward past the home indicator without changing the icon/label area.
-   · Total bar height = --teams-bar-h (content + safe-area), referenced by
-     every clearance rule (content padding, FAB, toast). */
+   · Desktop (>720px): sidebar renders as a fixed left column, always visible.
+     Main content and subbar are pushed right by --teams-sidebar-w.
+   · Mobile (≤720px): sidebar is a full-height slide-in drawer from the left.
+     A hamburger button in .teams-subbar (injected by teams.js) toggles it.
+     A backdrop behind the drawer closes it on tap.
+   · Safe-area: left edge is inset by env(safe-area-inset-left) so nothing
+     hides behind the rounded corners / Dynamic Island on iPhones.
+   · Scroll momentum: -webkit-overflow-scrolling:touch + overscroll-behavior
+     keep scrolling smooth inside the sidebar without leaking to the page.
+   · will-change:transform is declared only in the mobile block (where the
+     transform actually animates) to avoid unnecessary compositor layers. */
 
-/* ── Shared structural rules (all viewports) ── */
-.teams-tabbar{
-  display:flex;
+/* ── Base sidebar (shared by both viewports) ── */
+.teams-sidenav{
   position:fixed;
-  bottom:0; left:0; right:0;
+  top:0; left:0; bottom:0;
+  width:var(--teams-sidebar-w);
   background:var(--surface);
-  border-top:1px solid var(--border);
+  border-right:1px solid var(--border);
   z-index:8500;
-  /* Prevent any inherited font-size from affecting icon/label rendering */
-  font-size:0;
+  display:flex;
+  flex-direction:column;
+  /* Desktop: clear the topbar height and respect left notch */
+  padding-top:calc(var(--topbar-h, 56px) + var(--s-4));
+  padding-bottom:calc(var(--s-4) + env(safe-area-inset-bottom, 0px));
+  padding-left:max(var(--s-2), env(safe-area-inset-left, 0px));
+  padding-right:var(--s-2);
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch; /* momentum scroll on iOS */
+  overscroll-behavior:contain;      /* don't bleed scroll to the page */
 }
 
-/* ── Desktop / wide (> 720px): horizontal pill row ── */
-.teams-tabbar{
-  padding-top:8px;
-  padding-left:max(20px, env(safe-area-inset-left, 0px));
-  padding-right:max(20px, env(safe-area-inset-right, 0px));
-  padding-bottom:calc(8px + env(safe-area-inset-bottom, 0px));
-  justify-content:center;
+/* Links */
+.teams-sidenav a{
+  display:flex;
   align-items:center;
-  gap:4px;
-}
-.teams-tabbar a{
-  display:inline-flex;
-  flex-direction:row;
-  align-items:center;
-  gap:6px;
-  height:36px;
-  padding:0 12px;
+  gap:10px;
+  /* 48px minimum tap target (WCAG 2.5.5 / Apple HIG) */
+  min-height:48px;
+  padding:10px 14px;
+  border-radius:var(--r-md);
   color:var(--ink-3);
-  font-size:13px;         /* px — immune to rem/zoom scaling */
-  font-weight:500;
-  border-radius:8px;
   text-decoration:none;
+  font-size:14px;
+  font-weight:500;
+  line-height:1.2;
   white-space:nowrap;
   transition:color 120ms ease, background 120ms ease;
   position:relative;
-  line-height:1;
+  /* Prevent text selection on fast taps (Android / iOS) */
+  -webkit-user-select:none;
+  user-select:none;
+  /* Suppress the 300ms tap delay on mobile browsers */
+  touch-action:manipulation;
 }
-.teams-tabbar a:hover{ color:var(--ink); background:var(--surface-2); }
-.teams-tabbar a .teams-tab-glyph{ font-size:16px; line-height:1; flex-shrink:0; }
-.teams-tabbar a[aria-current="page"]{ color:var(--accent); background:var(--accent-tint); font-weight:600; }
-.teams-tabbar a[aria-current="page"]::after{
-  content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%);
-  width:20px; height:2px; border-radius:1px; background:var(--accent);
+.teams-sidenav a:hover{ color:var(--ink); background:var(--surface-2); }
+/* Suppress hover ghost on touch devices — :hover lingers after tap on iOS */
+@media (hover:none){
+  .teams-sidenav a:hover{ color:var(--ink-3); background:transparent; }
 }
-.teams-tabbar a:active{ background:var(--surface-2); }
+.teams-sidenav a[aria-current="page"]{
+  color:var(--accent); background:var(--accent-tint); font-weight:600;
+}
+.teams-sidenav a[aria-current="page"]::before{
+  content:''; position:absolute; left:0; top:25%; bottom:25%;
+  width:3px; border-radius:0 2px 2px 0; background:var(--accent);
+}
+/* Active press feedback — important for mobile (no hover) */
+.teams-sidenav a:active{ background:var(--surface-2); color:var(--ink); }
 
-/* Tab badge (e.g. overdue count) */
-.teams-tab-badge{
-  display:inline-flex; align-items:center; justify-content:center;
-  min-width:15px; height:15px; padding:0 3px;
-  background:var(--accent); color:#fff;
-  border-radius:999px; font-size:9px; font-weight:700; line-height:1;
-  margin-left:2px; flex-shrink:0;
+.teams-sidenav-glyph{ font-size:16px; line-height:1; flex-shrink:0; }
+.teams-sidenav-label{ flex:1; }
+
+/* ── Desktop / wide (>720px): sidebar is always visible ── */
+@media (min-width:721px){
+  main.hub-content{
+    margin-left:var(--teams-sidebar-w);
+  }
+  /* Subbar also needs to clear the sidebar column */
+  .teams-subbar{
+    margin-left:var(--teams-sidebar-w);
+  }
+  /* Hide the hamburger toggle — sidebar is permanently visible */
+  .teams-sidenav-toggle{ display:none !important; }
 }
 
-/* Short label is only for mobile; hidden on desktop. */
-.teams-tabbar a .teams-tab-label-short{ display:none; }
-
-/* Reserve space so page content doesn't scroll behind the bar.
-   --teams-bar-h already includes safe-area; add 8px breathing room. */
-main.hub-content{
-  padding-bottom:calc(var(--teams-bar-h) + 8px);
-}
-
-/* ── Mobile (≤ 720px): icon-over-label columns, equal width ── */
+/* ── Mobile (≤720px): sidebar is a slide-in drawer ── */
 @media (max-width:720px){
-  .teams-tabbar{
-    padding-top:4px;
-    padding-left:max(2px, env(safe-area-inset-left, 0px));
-    padding-right:max(2px, env(safe-area-inset-right, 0px));
-    padding-bottom:calc(4px + env(safe-area-inset-bottom, 0px));
-    gap:0;
-    justify-content:stretch;
-    align-items:stretch;
+  .teams-sidenav{
+    /* Drawer is off-screen until .teams-sidenav--open is added */
+    transform:translateX(-100%);
+    /* On mobile the drawer overlays everything including the topbar */
+    top:0;
+    /* Override desktop padding: start with safe-area-inset-top (notch / Dynamic Island) */
+    padding-top:calc(var(--s-4) + env(safe-area-inset-top, 0px));
+    /* 280px gives room for labels without cramping on smaller phones */
+    width:min(280px, 85vw);
+    /* z-index above .hub-topbar (9000) so the drawer fully covers the screen */
+    z-index:9400;
+    box-shadow:var(--shadow-3);
+    /* GPU-composited slide animation — only animate transform, not layout */
+    will-change:transform;
+    transition:transform 260ms cubic-bezier(.25,.46,.45,.94);
   }
-  .teams-tabbar a{
-    flex:1;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:3px;
-    height:auto;
-    min-height:44px;        /* WCAG 2.5.5 — px, not rem */
-    padding:4px 2px;
-    font-size:10px;         /* px — immune to iOS font scaling */
-    font-weight:500;
-    border-radius:6px;
-    white-space:nowrap;
-    overflow:hidden;
-    line-height:1;
+  .teams-sidenav--open{
+    transform:translateX(0);
   }
-  .teams-tabbar a .teams-tab-glyph{ font-size:18px; line-height:1; }
-  .teams-tabbar a .teams-tab-label{ display:none; }
-  .teams-tabbar a .teams-tab-label-short{ display:block; }
+  /* Hamburger toggle button — shown on mobile only */
+  .teams-sidenav-toggle{
+    display:inline-flex !important;
+    /* Ensure 44px min tap target */
+    min-width:44px;
+    min-height:44px;
+    margin-right:var(--s-2);
+    flex-shrink:0;
+    touch-action:manipulation;
+  }
+  /* Suppress reduced-motion: if user prefers, skip the slide entirely */
+  @media (prefers-reduced-motion:reduce){
+    .teams-sidenav{
+      transition:none;
+      will-change:auto;
+    }
+  }
 }
 
-/* ── Very small phones (≤ 360px) ── */
-@media (max-width:360px){
-  .teams-tabbar a{ font-size:9px; }
-  .teams-tabbar a .teams-tab-glyph{ font-size:16px; }
+/* ── Backdrop overlay ── */
+/* Hidden by default; visible only when .teams-sidenav-backdrop--open is present.
+   On desktop it is always suppressed.
+   On iOS the backdrop must be a real element (not pointer-events:none) so
+   touch events register and close the drawer. */
+.teams-sidenav-backdrop{
+  display:none;
+  position:fixed; inset:0;
+  background:rgba(20,19,16,.5);
+  /* Sit between the drawer (9400) and page content (< 9000) */
+  z-index:9399;
+  /* GPU-composited fade */
+  opacity:0;
+  transition:opacity 260ms ease;
+  /* Consume touch events so they don't pass through to page content */
+  touch-action:none;
+}
+.teams-sidenav-backdrop--open{
+  display:block;
+  opacity:1;
+}
+@media (min-width:721px){
+  .teams-sidenav-backdrop{ display:none !important; }
+}
+/* No transition when reduced-motion is preferred */
+@media (prefers-reduced-motion:reduce){
+  .teams-sidenav-backdrop{ transition:none; }
 }
 
 /* ---------- Modal / sheet ---------- */
 .teams-overlay{
   position:fixed; inset:0; z-index:9500; background:rgba(20,19,16,.4);
   display:none; align-items:flex-end; justify-content:center; padding:0;
+  /* Consume touch events — prevent tap-through to content below */
+  touch-action:none;
 }
 .teams-overlay.open{ display:flex; }
 .teams-sheet{
   background:var(--surface); border-radius:var(--r-lg) var(--r-lg) 0 0; width:100%; max-width:560px;
-  max-height:88vh; overflow-y:auto; padding:var(--s-5); box-shadow:var(--shadow-3);
+  /* Use dvh so the sheet doesn't oversize behind the iOS keyboard */
+  max-height:88dvh;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch; /* momentum scroll on iOS */
+  overscroll-behavior:contain;
+  /* Bottom safe-area: keeps content clear of the home indicator */
+  padding:var(--s-5) var(--s-5) calc(var(--s-5) + env(safe-area-inset-bottom, 0px));
+  box-shadow:var(--shadow-3);
   position:relative;
+  /* Allow sheet itself to receive touch events */
+  touch-action:pan-y;
 }
 @media (min-width:721px){
   .teams-overlay{ align-items:center; padding:var(--s-5); }
-  .teams-sheet{ border-radius:var(--r-lg); }
+  .teams-sheet{ border-radius:var(--r-lg); max-height:88vh; padding-bottom:var(--s-5); }
 }
 .teams-sheet h2{ font-family:var(--font-serif); font-weight:500; font-size:var(--t-xl); margin:0 0 var(--s-4); }
 .teams-sheet-close{
   position:absolute; top:var(--s-4); right:var(--s-4); background:none; border:none;
-  font-size:1.1rem; color:var(--ink-3); cursor:pointer; line-height:1; min-width:32px; min-height:32px;
+  font-size:1.1rem; color:var(--ink-3); cursor:pointer; line-height:1;
+  /* 44px tap target */
+  min-width:44px; min-height:44px;
+  display:inline-flex; align-items:center; justify-content:center;
+  touch-action:manipulation;
 }
 
 /* ---------- FAB (mobile intake / new) ---------- */
 .teams-fab{
   position:fixed; right:var(--s-4);
-  /* --teams-bar-h already includes safe-area-inset-bottom */
-  bottom:calc(var(--teams-bar-h) + var(--s-4));
+  bottom:calc(var(--s-4) + env(safe-area-inset-bottom, 0px));
   z-index:8600;
   width:52px; height:52px; border-radius:50%; background:var(--accent); color:#fff;
   display:flex; align-items:center; justify-content:center; font-size:1.4rem; box-shadow:var(--shadow-3);
