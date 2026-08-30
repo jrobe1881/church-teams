@@ -73,6 +73,13 @@ body.hub-body.teams-leaving{
   z-index:8499;
   padding-bottom:env(safe-area-inset-bottom, 0px);
 }
+/* Extend skeleton background below layout viewport — same fix as .teams-tabbar::after */
+.teams-tabbar-skel::after{
+  content:'';
+  position:absolute; bottom:-100px; left:0; right:0; height:100px;
+  background:var(--surface);
+  pointer-events:none;
+}
 /* Hides itself the moment a real tabbar sibling is rendered */
 .teams-tabbar ~ .teams-tabbar-skel,
 .teams-tabbar-skel:has(~ .teams-tabbar){ display:none; }
@@ -250,6 +257,17 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
   background:var(--surface); border-top:1px solid var(--border);
   justify-content:center; align-items:center; gap:var(--s-1);
   z-index:8500; overflow-x:visible;
+}
+/* Paint the bar's background all the way to the physical screen bottom.
+   On iOS Safari the layout viewport stops above the browser chrome, so
+   bottom:0 leaves a visible gap. The ::after pseudo-element fills it by
+   extending 100px below the bar — harmless on devices where it isn't needed
+   because it's behind the screen edge anyway. */
+.teams-tabbar::after{
+  content:'';
+  position:absolute; bottom:-100px; left:0; right:0; height:100px;
+  background:var(--surface);
+  pointer-events:none;
 }
 .teams-tabbar a{
   display:flex; flex-direction:row; align-items:center; gap:6px;
