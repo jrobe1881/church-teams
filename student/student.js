@@ -560,6 +560,9 @@
   }
 
   window.TeamsCtx.ready.then(function(){
+    /* Render bottom tabbar — student detail is a sub-page of 'students' */
+    var tabbarSlot = document.getElementById('teamsTabbarSlot');
+    if (tabbarSlot) tabbarSlot.innerHTML = window.TeamsCtx.bottomTabs('students');
     if (!window.TeamsCtx.requireAccess(root)) return;
     load().then(function(ok){
       if (!ok) { renderMissing(); return; }

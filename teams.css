@@ -62,16 +62,23 @@ body.hub-body.teams-leaving{
   .teams-nav-loader__diamond{ animation:none; opacity:.7; }
 }
 
+/* ── Tabbar height token ──────────────────────────────────────────────────────
+   Single source of truth: the bar's own inner height (excludes safe-area).
+   Desktop: 8px pad + 36px item + 8px pad = 52px.
+   Mobile (≤720px): 6px pad + 48px item + 6px pad = 60px.
+   All elements that need to clear the bar (content padding, FAB, toast)
+   reference --teams-bar-h so nothing drifts out of sync. */
+:root{ --teams-bar-h:52px; }
+@media (max-width:720px){ :root{ --teams-bar-h:60px; } }
+
 /* ── Skeleton tabbar placeholder (shown before JS renders real tabs) ─────────
-   Keeps the bottom bar from popping in from nothing.
-   Height: 8px top + 48px item + 8px bottom + safe-area = 64px + safe-area. */
+   Matches the real bar's dimensions exactly so there's no height pop. */
 .teams-tabbar-skel{
   display:flex;
   position:fixed; bottom:0; left:0; right:0;
-  height:calc(64px + env(safe-area-inset-bottom, 0px));
+  height:calc(var(--teams-bar-h) + env(safe-area-inset-bottom, 0px));
   background:var(--surface); border-top:1px solid var(--border);
   z-index:8499;
-  padding-bottom:env(safe-area-inset-bottom, 0px);
 }
 /* Hides itself the moment a real tabbar sibling is rendered */
 .teams-tabbar ~ .teams-tabbar-skel,
@@ -106,9 +113,8 @@ body.hub-body.teams-leaving{
 }
 
 /* ---------- Page shell ---------- */
-/* --s-16 is 64px but tabbar can be up to 82px (48px + 8+8 + 18px safe-area).
-   Use 96px (--s-10 + --s-8 + --s-6 ≈ 96px) as bottom clearance so last card
-   always scrolls fully into view above the bar. */
+/* 96px bottom padding gives generous clearance so the last card always scrolls
+   fully into view above the fixed tabbar (--teams-bar-h + safe-area + breathing room). */
 .teams-page{ max-width:900px; margin:0 auto; padding:var(--s-6) var(--s-5) 96px; }
 .teams-page-wide{ max-width:1100px; }
 @media (max-width:720px){
@@ -212,10 +218,10 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
   color:var(--accent); padding:var(--s-2) var(--s-3); background:var(--accent-tint);
   border-radius:var(--r-sm); font-size:var(--t-sm); margin-top:var(--s-2);
 }
-/* Toast sits above the tabbar: 64px bar + 12px gap + safe-area */
+/* Toast sits above the tabbar */
 .teams-toast{
   position:fixed;
-  bottom:calc(64px + env(safe-area-inset-bottom, 0px) + var(--s-3));
+  bottom:calc(var(--teams-bar-h) + env(safe-area-inset-bottom, 0px) + var(--s-3));
   left:50%;
   transform:translateX(-50%) translateY(12px); background:var(--ink); color:var(--surface);
   padding:12px 18px; border-radius:var(--r-md); font-size:var(--t-sm); box-shadow:var(--shadow-3);
@@ -242,20 +248,42 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
 /* Result count line above list */
 .teams-result-count{ font-size:var(--t-xs); color:var(--ink-3); margin-bottom:var(--s-3); }
 
-/* ---------- Tabs: fixed to viewport bottom on every viewport ---------- */
+/* ── Bottom tab bar ──────────────────────────────────────────────────────────
+   Sits flush at the bottom of the viewport on every screen size.
+   Height = --teams-bar-h (see :root above) + safe-area-inset-bottom.
+   All padding values are EXPLICIT on every breakpoint — no shorthand
+   inheritance surprises. */
+
+/* ── Desktop / wide (> 720px): horizontal pill row ── */
 .teams-tabbar{
   display:flex;
-  position:fixed; bottom:0; left:0; right:0;
-  padding:var(--s-2) var(--s-5) calc(var(--s-2) + env(safe-area-inset-bottom, 0px));
-  background:var(--surface); border-top:1px solid var(--border);
-  justify-content:center; align-items:center; gap:var(--s-1);
-  z-index:8500; overflow-x:visible;
+  position:fixed;
+  bottom:0; left:0; right:0;
+  /* Explicit padding — top, left, right stay constant; bottom grows with notch */
+  padding-top:8px;
+  padding-left:max(20px, env(safe-area-inset-left, 0px));
+  padding-right:max(20px, env(safe-area-inset-right, 0px));
+  padding-bottom:max(8px, env(safe-area-inset-bottom, 0px));
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  justify-content:center;
+  align-items:center;
+  gap:var(--s-1);
+  z-index:8500;
 }
 .teams-tabbar a{
-  display:flex; flex-direction:row; align-items:center; gap:6px;
-  min-height:36px; padding:6px 12px;
-  color:var(--ink-3); font-size:var(--t-sm); font-weight:500;
-  border-radius:var(--r-md); text-decoration:none; white-space:nowrap;
+  display:inline-flex;
+  flex-direction:row;
+  align-items:center;
+  gap:6px;
+  min-height:36px;
+  padding:6px 12px;
+  color:var(--ink-3);
+  font-size:var(--t-sm);
+  font-weight:500;
+  border-radius:var(--r-md);
+  text-decoration:none;
+  white-space:nowrap;
   transition:color var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
   position:relative;
 }
@@ -267,6 +295,7 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
   width:20px; height:2px; border-radius:1px; background:var(--accent);
 }
 .teams-tabbar a:active{ background:var(--surface-2); }
+
 /* Tab badge (e.g. overdue count) */
 .teams-tab-badge{
   display:inline-flex; align-items:center; justify-content:center;
@@ -279,44 +308,47 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
 /* Short label is only for mobile; hidden on desktop. */
 .teams-tabbar a .teams-tab-label-short{ display:none; }
 
-/* Reserve space so page content doesn't hide behind the tabbar.
-   Mobile bar: 8px top padding + 48px item height + 8px bottom padding + safe-area = 64px + safe-area.
-   Add 8px extra breathing room so the last card clears the bar visually. */
+/* Reserve space so page content doesn't scroll behind the bar.
+   Content padding = bar height + safe-area + 8px breathing room. */
 main.hub-content{
-  padding-bottom:calc(72px + env(safe-area-inset-bottom, 0px));
+  padding-bottom:calc(var(--teams-bar-h) + env(safe-area-inset-bottom, 0px) + 8px);
 }
 
-/* ── Mobile tabbar: icon-only stack, equal-width items, no overflow ─────── */
+/* ── Mobile (≤ 720px): icon + short label, equal-width columns ── */
 @media (max-width:720px){
   .teams-tabbar{
-    padding-left:max(var(--s-2), env(safe-area-inset-left, 0px));
-    padding-right:max(var(--s-2), env(safe-area-inset-right, 0px));
+    /* Explicit padding at this breakpoint — no shorthand to inherit from */
+    padding-top:6px;
+    padding-left:max(4px, env(safe-area-inset-left, 0px));
+    padding-right:max(4px, env(safe-area-inset-right, 0px));
+    padding-bottom:max(6px, env(safe-area-inset-bottom, 0px));
     gap:0;
-    overflow-x:visible;
+    justify-content:stretch;
+    align-items:stretch;
   }
   .teams-tabbar a{
-    flex:1;                     /* fill bar evenly — no fixed min-width */
+    flex:1;
     flex-direction:column;
-    align-items:center; justify-content:center;
-    gap:2px;
-    min-height:48px;            /* WCAG-friendly tap target */
-    padding:6px 2px;
-    font-size:.68rem;           /* compact but legible label */
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    min-height:48px;      /* WCAG 2.5.5 minimum tap target */
+    padding:4px 2px;
+    font-size:.65rem;
     font-weight:500;
     border-radius:var(--r-sm);
     white-space:nowrap;
     overflow:hidden;
   }
-  .teams-tabbar a .teams-tab-glyph{ font-size:1.2rem; line-height:1; }
-  /* Short label — shown via data-short attribute on the <span> child */
+  .teams-tabbar a .teams-tab-glyph{ font-size:1.15rem; line-height:1; }
   .teams-tabbar a .teams-tab-label{ display:none; }
   .teams-tabbar a .teams-tab-label-short{ display:block; }
 }
 
-/* Very small phones (≤ 360px) — slightly smaller glyph */
+/* ── Very small phones (≤ 360px) ── */
 @media (max-width:360px){
   .teams-tabbar a{ font-size:.6rem; }
-  .teams-tabbar a .teams-tab-glyph{ font-size:1.05rem; }
+  .teams-tabbar a .teams-tab-glyph{ font-size:1rem; }
 }
 
 /* ---------- Modal / sheet ---------- */
@@ -343,8 +375,8 @@ main.hub-content{
 /* ---------- FAB (mobile intake / new) ---------- */
 .teams-fab{
   position:fixed; right:var(--s-4);
-  /* Clear tabbar: 64px bar (8px top + 48px item + 8px bottom) + safe-area + 16px gap */
-  bottom:calc(64px + env(safe-area-inset-bottom, 0px) + var(--s-4));
+  /* Clear tabbar using the shared height token */
+  bottom:calc(var(--teams-bar-h) + env(safe-area-inset-bottom, 0px) + var(--s-4));
   z-index:8600;
   width:52px; height:52px; border-radius:50%; background:var(--accent); color:#fff;
   display:flex; align-items:center; justify-content:center; font-size:1.4rem; box-shadow:var(--shadow-3);

@@ -15,6 +15,9 @@
 
   window.TeamsCtx.ready.then(function () {
     var ctx = window.TeamsCtx;
+    /* Render the bottom tabbar — profile is not a primary tab key so no item is active */
+    var tabbarSlot = document.getElementById('teamsTabbarSlot');
+    if (tabbarSlot) tabbarSlot.innerHTML = ctx.bottomTabs('profile');
     if (!ctx.user) {
       root.innerHTML =
         '<div class="teams-empty">' +
