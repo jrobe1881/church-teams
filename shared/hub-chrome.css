@@ -114,7 +114,9 @@ body.hub-body{background:var(--bg);color:var(--ink);min-height:100vh;min-height:
 .hub-tab-badge{position:absolute;top:2px;right:4px;background:var(--accent);color:#fff;border-radius:9px;font-size:.58rem;font-weight:700;line-height:1;padding:2px 5px;min-width:14px;text-align:center}
 
 /* ============ Content area ============ */
-.hub-content{overflow-y:auto;background:var(--bg);min-width:0;position:relative}
+/* flex:1 fills remaining body height so the body background never shows
+   as a black void below short-content pages on mobile. */
+.hub-content{overflow-y:auto;background:var(--bg);min-width:0;position:relative;flex:1;min-height:0}
 .hub-content-inner{max-width:900px;margin:0 auto;padding:var(--s-8) var(--s-6)}
 .hub-content-narrow{max-width:720px}
 .hub-content-wide{max-width:1200px}
