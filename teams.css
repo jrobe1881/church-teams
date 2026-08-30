@@ -3,6 +3,21 @@
    Do not invent new colors, radii, or fonts here — everything must
    reference existing --tokens. */
 
+/* ── iOS PWA / WebKit viewport lock ─────────────────────────────────────────
+   In iOS standalone PWA mode WebKit can auto-scale text and the visual
+   viewport in ways that inflate rem/em-based fixed elements differently
+   on each page depending on content density.
+   Lock all of this down globally so the tabbar is pixel-perfect everywhere. */
+html{
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+body{
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+  touch-action:pan-x pan-y;  /* disable double-tap zoom which can rescale viewport */
+}
+
 /* ── Page transition ─────────────────────────────────────────────────────────
    body fades in on every page load. .teams-leaving fades it out before
    navigating, masking the hard white-frame flash on iOS/Android. */
