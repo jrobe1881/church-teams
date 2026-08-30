@@ -2,7 +2,7 @@
    Depends on /shared/tokens.css. Provides the same topbar, safe-area,
    focus rings, buttons, and mobile shell as the Builder. */
 
-body.hub-body{background:var(--bg);color:var(--ink);min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}
+body.hub-body{background:var(--bg);color:var(--ink);min-height:100vh;min-height:100dvh;height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}
 
 /* ============ Topbar (matches Builder) ============
    --topbar-h is consumed by the mobile drawer so it never sits under the
