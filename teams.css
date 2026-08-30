@@ -302,8 +302,6 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
    Add 8px extra breathing room so the last card clears the bar visually. */
 main.hub-content{
   padding-bottom:calc(72px + env(safe-area-inset-bottom, 0px));
-  flex:1;           /* stretch to fill body flex column — eliminates empty space below content */
-  min-height:0;     /* allow flex shrink in flex layout */
 }
 
 /* ── Mobile tabbar: icon-only stack, equal-width items, no overflow ─────── */
