@@ -132,7 +132,7 @@ html[data-accent="rose"][data-theme-early="dark"]{--accent:#d45e95;--accent-hove
 
 /* Reset & base */
 *,*::before,*::after{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;height:100%}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 /* Prevent off-canvas rails (transformed with translateX(100%)) from
    expanding the layout viewport and pushing position:fixed elements
    (like the tour card) off-screen on mobile. */
