@@ -64,19 +64,19 @@ body.hub-body.teams-leaving{
 
 /* ── Skeleton tabbar placeholder (shown before JS renders real tabs) ─────────
    Keeps the bottom bar from popping in from nothing.
-   Height must match real .teams-tabbar: 8px top + 48px item + 8px bottom = 64px + safe-area. */
+   Height must match real .teams-tabbar: 8px top + 48px item + max(16px, 8px+safe-area) bottom. */
 .teams-tabbar-skel{
   display:flex;
   position:fixed; bottom:0; left:0; right:0;
-  height:calc(64px + env(safe-area-inset-bottom, 0px));
+  height:calc(72px + env(safe-area-inset-bottom, 0px));
   background:var(--surface); border-top:1px solid var(--border);
   z-index:8499;
-  padding-bottom:env(safe-area-inset-bottom, 0px);
+  padding-bottom:max(16px, env(safe-area-inset-bottom, 0px));
 }
-/* Extend skeleton background below layout viewport — same fix as .teams-tabbar::after */
+/* Extend skeleton background below layout viewport */
 .teams-tabbar-skel::after{
   content:'';
-  position:absolute; bottom:-100px; left:0; right:0; height:100px;
+  position:absolute; bottom:-120px; left:0; right:0; height:120px;
   background:var(--surface);
   pointer-events:none;
 }
@@ -253,19 +253,20 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
 .teams-tabbar{
   display:flex;
   position:fixed; bottom:0; left:0; right:0;
-  padding:var(--s-2) var(--s-5) calc(var(--s-2) + env(safe-area-inset-bottom, 0px));
+  /* padding-bottom covers home indicator AND pushes bar flush with the
+     physical screen bottom on iOS Safari (where the layout viewport bottom
+     sits above the browser chrome). Use max() so we always pad at least
+     16px even when safe-area-inset-bottom is 0. */
+  padding:var(--s-2) var(--s-5) max(16px, calc(var(--s-2) + env(safe-area-inset-bottom, 0px)));
   background:var(--surface); border-top:1px solid var(--border);
   justify-content:center; align-items:center; gap:var(--s-1);
   z-index:8500; overflow-x:visible;
 }
-/* Paint the bar's background all the way to the physical screen bottom.
-   On iOS Safari the layout viewport stops above the browser chrome, so
-   bottom:0 leaves a visible gap. The ::after pseudo-element fills it by
-   extending 100px below the bar — harmless on devices where it isn't needed
-   because it's behind the screen edge anyway. */
+/* Extend bar background below the layout viewport so no gap shows on
+   any device or browser. */
 .teams-tabbar::after{
   content:'';
-  position:absolute; bottom:-100px; left:0; right:0; height:100px;
+  position:absolute; bottom:-120px; left:0; right:0; height:120px;
   background:var(--surface);
   pointer-events:none;
 }

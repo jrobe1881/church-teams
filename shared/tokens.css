@@ -100,12 +100,15 @@ html[data-theme-early="dark"] body{
   --shadow-3:0 12px 32px rgba(0,0,0,.65);
   --focus:0 0 0 3px rgba(168,50,67,.30);
 }
-/* Anti-FOUC: paint html+body dark IMMEDIATELY when the inline head script
+/* Anti-FOUC: paint body dark IMMEDIATELY when the inline head script
    set data-theme-early="dark", before tokens.css finishes loading or theme.js
-   adds body.theme-dark. Prevents a light flash between page navigations. */
-html[data-theme-early="dark"]{background:#050505;color-scheme:dark}
+   adds body.theme-dark. Prevents a light flash between page navigations.
+   NOTE: background is on body only — NOT html — so iOS Safari cannot paint
+   the html background below the visual viewport as a black gap. */
+html[data-theme-early="dark"]{color-scheme:dark}
 html[data-theme-early="dark"] body{background:#050505;color:#f2ede2}
-html[data-theme-early="light"]{background:#fafafa;color-scheme:light}
+html[data-theme-early="light"]{color-scheme:light}
+html[data-theme-early="light"] body{background:#fafafa}
 
 /* ── Accent FOUC overrides ──────────────────────────────────────────────────
    The inline head FOUC script writes data-accent="<id>" on <html> before
