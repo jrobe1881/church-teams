@@ -50,6 +50,17 @@ document.head.appendChild(s);
 <meta name="description" content="ChurchTeams helps churches track Bible studies, follow-ups, cultivation, and baptisms — all in one private dashboard for your team." />
 <link rel="canonical" href="https://churchteams.tech/" />
 
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://churchteams.tech/" />
+<meta property="og:title" content="ChurchTeams — Organize your church. Disciple your people." />
+<meta property="og:description" content="A free private dashboard for church teams to track Bible studies, follow-ups, cultivation visits, sessions, and baptisms — all in one place." />
+<meta property="og:site_name" content="ChurchTeams" />
+<!-- Twitter card -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="ChurchTeams — Organize your church. Disciple your people." />
+<meta name="twitter:description" content="A free private dashboard for church teams to track Bible studies, follow-ups, cultivation, and baptisms." />
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -145,7 +156,7 @@ body{
   grid-template-columns:repeat(3,1fr);
   gap:var(--s-5);
 }
-@media(max-width:720px){
+@media(max-width:520px){
   .ct-features-grid{ grid-template-columns:1fr; }
 }
 @media(min-width:521px) and (max-width:720px){
@@ -255,9 +266,50 @@ body{
 
 /* Hide notification bell and quick-jump FAB on the landing page */
 #bpNotif, .bp-qj-fab { display: none !important; }
+
+/* Minimal topbar for the landing page */
+.ct-topbar{
+  position:sticky; top:0; z-index:9000;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 var(--s-5); height:56px;
+}
+.ct-topbar-brand{
+  display:flex; align-items:center; gap:var(--s-2);
+  font-family:var(--font-serif); font-size:var(--t-md); font-weight:500;
+  color:var(--ink); text-decoration:none;
+}
+.ct-topbar-brand-glyph{ color:var(--accent); }
+.ct-topbar-actions{ display:flex; align-items:center; gap:var(--s-2); }
+.ct-topbar-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:40px; height:40px; border-radius:var(--r-md);
+  background:none; border:none; color:var(--ink-2); font-size:1rem;
+  cursor:pointer; transition:background var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
+}
+.ct-topbar-btn:hover{ background:var(--surface-2); color:var(--ink); }
+.ct-topbar-signin{
+  background:none; border:1px solid var(--border); color:var(--ink);
+  border-radius:var(--r-md); padding:8px 16px; font-family:var(--font-sans);
+  font-size:var(--t-sm); font-weight:500; cursor:pointer;
+  transition:border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
+}
+.ct-topbar-signin:hover{ border-color:var(--border-strong); background:var(--surface-2); }
 </style>
 </head>
 <body>
+
+<!-- Landing topbar -->
+<header class="ct-topbar">
+  <a href="/" class="ct-topbar-brand" aria-label="ChurchTeams home">
+    <span class="ct-topbar-brand-glyph">❖</span>
+    ChurchTeams
+  </a>
+  <div class="ct-topbar-actions">
+    <button type="button" class="ct-topbar-btn" id="landingThemeBtn" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    <button type="button" class="ct-topbar-signin" id="topbarSignInBtn">Sign in</button>
+  </div>
+</header>
 
 <!-- Hero -->
 <section class="ct-hero">
@@ -354,7 +406,7 @@ body{
       <button type="button" class="ct-footer-sign-in" id="footerSignInBtn">Sign in</button>
       <a href="https://bibleparlor.com" target="_blank" rel="noopener">Bible Parlor</a>
     </nav>
-    <p class="ct-footer-copy">© 2025 ChurchTeams · Powered by Bible Parlor</p>
+    <p class="ct-footer-copy">© 2025 ChurchTeams &middot; Powered by <a href="https://bibleparlor.com" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:2px">Bible Parlor</a></p>
   </div>
 </footer>
 
@@ -365,7 +417,7 @@ body{
 (function(){
   /* Wire all "Sign in" buttons to open the CloudAccount modal. */
   function wireSignInBtns(){
-    ['heroSignInBtn','footerSignInBtn'].forEach(function(id){
+    ['heroSignInBtn','footerSignInBtn','topbarSignInBtn'].forEach(function(id){
       var el = document.getElementById(id);
       if (el) el.addEventListener('click', function(){
         if (window.CloudAccount) window.CloudAccount.openModal('signin');
@@ -374,6 +426,24 @@ body{
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wireSignInBtns);
   else wireSignInBtns();
+
+  /* Theme toggle on landing page */
+  function wireThemeBtn(){
+    var btn = document.getElementById('landingThemeBtn');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      if (window.BshTheme && window.BshTheme.cycle) { window.BshTheme.cycle(); return; }
+      /* Fallback: toggle between light and dark */
+      var cur = document.documentElement.getAttribute('data-theme-early') || 'dark';
+      var next = cur === 'dark' ? 'light' : 'dark';
+      try { (window.safeLS || localStorage).setItem('bsh_theme_v1', next); } catch(e){}
+      document.documentElement.setAttribute('data-theme-early', next);
+      document.documentElement.style.colorScheme = next;
+      document.documentElement.style.background = next === 'dark' ? '#050505' : '#fafafa';
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wireThemeBtn);
+  else wireThemeBtn();
 
   /* Redirect to /dashboard/ when the user signs in. Only redirect on a fresh
      sign-in (signed-out → signed-in transition), not on every page load. */

@@ -178,10 +178,13 @@ a.teams-card{ display:block; color:inherit; }
   background:transparent; border:1px solid var(--border); color:var(--ink);
 }
 .teams-btn-secondary:hover{ background:transparent; border-color:var(--ink-3); }
+/* Danger uses red semantics — NOT the burgundy accent — to avoid ambiguity */
 .teams-btn-danger{
-  background:var(--accent); color:#fff; border-color:var(--accent);
+  background:#c1272d; color:#fff; border-color:#c1272d;
 }
-.teams-btn-danger:hover{ background:var(--accent-hover); border-color:var(--accent-hover); }
+.teams-btn-danger:hover{ background:#a51e23; border-color:#a51e23; }
+body.theme-dark .teams-btn-danger{ background:#d94f54; border-color:#d94f54; }
+body.theme-dark .teams-btn-danger:hover{ background:#c1272d; border-color:#c1272d; }
 .teams-btn-sm{ padding:7px 12px; font-size:var(--t-xs); min-height:36px; }
 .teams-btn-block{ width:100%; }
 
@@ -260,10 +263,15 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
 /* ---------- Skeleton loader ---------- */
 .skeleton{
   background:linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%);
-  background-size:200% 100%; animation:teams-shimmer 1.4s ease infinite; border-radius:var(--r-md);
+  background-size:200% 100%;
+  animation:teams-shimmer 1.6s cubic-bezier(.4,0,.6,1) infinite;
+  border-radius:var(--r-md);
 }
 @keyframes teams-shimmer{ 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 .teams-skel-card{ height:98px; }
+@media (prefers-reduced-motion: reduce){
+  .skeleton{ animation:none; background:var(--surface-2); }
+}
 
 /* ---------- Empty states ---------- */
 .teams-empty{
@@ -331,8 +339,14 @@ button.teams-chip.is-selected{ background:var(--accent); color:#fff; }
   user-select:none;
   /* Suppress the 300ms tap delay on mobile browsers */
   touch-action:manipulation;
+  outline:none;
 }
 .teams-sidenav a:hover{ color:var(--ink); background:var(--surface-2); }
+/* Keyboard focus ring on sidenav links — visible only for keyboard nav */
+.teams-sidenav a:focus-visible{
+  outline:none;
+  box-shadow:var(--focus);
+}
 /* Suppress hover ghost on touch devices — :hover lingers after tap on iOS */
 @media (hover:none){
   .teams-sidenav a:hover{ color:var(--ink-3); background:transparent; }

@@ -192,18 +192,18 @@
     var rec = null;
     try { rec = JSON.parse(raw); } catch(e){}
     if (!rec || !rec.slug) return;
-    var link = 'churchteams.tech/join/?slug=' + rec.slug;
+    var fullLink = 'https://churchteams.tech/join/?slug=' + encodeURIComponent(rec.slug);
     var toast = document.createElement('div');
     toast.className = 'teams-toast';
-    toast.innerHTML = 'Church registered. Share your invite link: ' + link + ' <button type="button" class="teams-btn teams-btn-sm teams-btn-secondary" id="toastCopyBtn" style="margin-left:8px">Copy</button>';
+    toast.innerHTML = '✓ Church registered! Share invite: <strong>' + esc(rec.slug) + '</strong> <button type="button" class="teams-btn teams-btn-sm teams-btn-secondary" id="toastCopyBtn" style="margin-left:8px">Copy link</button>';
     document.body.appendChild(toast);
     requestAnimationFrame(function(){ toast.classList.add('show'); });
     var copyBtn = toast.querySelector('#toastCopyBtn');
     if (copyBtn) copyBtn.addEventListener('click', function(){
-      if (navigator.clipboard) navigator.clipboard.writeText('https://' + link).catch(function(){});
-      copyBtn.textContent = 'Copied';
+      if (navigator.clipboard) { navigator.clipboard.writeText(fullLink).then(function(){ copyBtn.textContent = '✓ Copied'; }).catch(function(){}); }
+      else { copyBtn.textContent = fullLink; }
     });
-    setTimeout(function(){ toast.classList.remove('show'); setTimeout(function(){ toast.remove(); }, 300); }, 8000);
+    setTimeout(function(){ toast.classList.remove('show'); setTimeout(function(){ toast.remove(); }, 300); }, 10000);
   }
 
   window.TeamsCtx.ready.then(function(){

@@ -2,41 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<link rel="icon" href="data:image/x-icon;base64,AAABAAIAEBAAAAEAIACFAAAAJgAAACAgAAABACAAygAAAKsAAACJUE5HDQoaCgAAAA1JSERSAAAAEAAAABAIBgAAAB/z/2EAAABMSURBVHjaY2BAA1Xy2v9hGAaQxRgIgcFjALJGZDZeG7FpwCcGNhCfQnQvYDOEgZBmQoYw4FKEDWCTp9wAir1A1UAkKxopTkhDPzMBANpx4JBTNNqEAAAAAElFTkSuQmCCiVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAkUlEQVR42u2XSw6AIAxE5yYewBt6ed1jWko7yhhpwgrte4RfAZw4tv1kNGTDS9rGEviXQAvtSVAFLJgnAdZW6400Mh03ORY8KwEmPPM9KsmyfWGBCKAqAQa8IgEWPCsBK2kGPvqvKVCBj64bTYHXp2D6IpTbhhIHkcRRLHEZSVzHjxYk00uyzxWl612wBNjP8wuw5qT+AARSiQAAAABJRU5ErkJggg==" sizes="any">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8IS0tIEJhY2tncm91bmQgcm91bmRlZCBzcXVhcmUgKENodXJjaFRlYW1zIGJ1cmd1bmR5KSAtLT4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI3IiBmaWxsPSIjN2ExZjJiIi8+CiAgPCEtLSDinZYgZGlhbW9uZCBnbHlwaDogb3V0ZXIgZGlhbW9uZCArIGlubmVyIGRpYW1vbmQgKGhvbGxvdykgKyBmb3VyIGNvcm5lciBkb3RzIC0tPgogIDwhLS0gT3V0ZXIgZGlhbW9uZCAtLT4KICA8cG9seWdvbiBwb2ludHM9IjE2LDMgMjksMTYgMTYsMjkgMywxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjIuMiIvPgogIDwhLS0gSW5uZXIgZGlhbW9uZCAtLT4KICA8cG9seWdvbiBwb2ludHM9IjE2LDEwIDIyLDE2IDE2LDIyIDEwLDE2IiBmaWxsPSIjZmZmZmZmIi8+CiAgPCEtLSBDb3JuZXIgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjMiICByPSIxLjgiIGZpbGw9IiNmZmZmZmYiLz4KICA8Y2lyY2xlIGN4PSIyOSIgY3k9IjE2IiByPSIxLjgiIGZpbGw9IiNmZmZmZmYiLz4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjI5IiByPSIxLjgiIGZpbGw9IiNmZmZmZmYiLz4KICA8Y2lyY2xlIGN4PSIzIiAgY3k9IjE2IiByPSIxLjgiIGZpbGw9IiNmZmZmZmYiLz4KPC9zdmc+Cg==">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-ct.png">
+<link rel="manifest" href="/site.webmanifest?v=3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ChurchTeams">
+<meta name="color-scheme" content="dark light">
 <style>body{background:#050505;color-scheme:dark light}html[data-theme-early="light"] body{background:#fafafa}</style>
-<script>/*fouc*/(function(){try{
-var h=document.documentElement,
-ts=localStorage.getItem("bsh_theme_v1")||"auto",
-ac=localStorage.getItem("bsh_accent_v1")||"",
-r=ts==="auto"?(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"):ts;
-h.style.colorScheme=r;
-h.style.background=r==="dark"?"#050505":"#fafafa";
-h.setAttribute("data-theme-early",r);
-h.classList.add("theme-"+r+"-early");
-if(/^#[0-9a-fA-F]{6}$/.test(ac)){
-h.setAttribute("data-accent",ac);
-var p=parseInt(ac.slice(1),16),rv=(p>>16)&255,gv=(p>>8)&255,bv=p&255;
-function cl(x){return Math.max(0,Math.min(255,Math.round(x)));}
-function rgb(r,g,b){return"rgb("+r+","+g+","+b+")";}
-var dk=r==="dark";
-var fa=dk?rgb(cl(rv+40),cl(gv+40),cl(bv+40)):ac;
-var fh=dk?rgb(cl(rv+60),cl(gv+60),cl(bv+60)):rgb(cl(rv-18),cl(gv-18),cl(bv-18));
-var ta=dk?0.12:0.08;
-var ft="rgba("+rv+","+gv+","+bv+","+ta+")";
-var fs=dk?"rgba("+rv+","+gv+","+bv+",.15)":rgb(cl(rv+110),cl(gv+110),cl(bv+110));
-var ff="0 0 0 3px rgba("+rv+","+gv+","+bv+","+(dk?0.30:0.15)+")";
-var s=document.createElement("style");
-s.id="bsh-accent-fouc";
-s.textContent="html[data-accent]{--accent:"+fa+";--accent-hover:"+fh+";--accent-tint:"+ft+";--accent-soft:"+fs+";--focus:"+ff+"}"
-+"html[data-accent][data-theme-early=dark],html[data-accent][data-theme-early=dark] body{--accent:"+fa+";--accent-hover:"+fh+";--accent-tint:"+ft+";--accent-soft:"+fs+";--focus:"+ff+"}";
-document.head.appendChild(s);
-}
-}catch(e){}})();</script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>/*fouc*/(function(){try{var h=document.documentElement,ts=localStorage.getItem("bsh_theme_v1")||"auto",r=ts==="auto"?(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"):ts;h.style.colorScheme=r;h.style.background=r==="dark"?"#050505":"#fafafa";h.setAttribute("data-theme-early",r);}catch(e){}})();</script>
 <title>Redirecting — ChurchTeams</title>
 <meta name="robots" content="noindex, nofollow" />
 <link rel="canonical" href="https://churchteams.tech/schedule/" />
 <meta http-equiv="refresh" content="0; url=/schedule/" />
-<script>location.replace('/schedule/' + location.search);</script>
+<script>location.replace('/schedule/' + location.search + location.hash);</script>
 </head>
 <body>
 <p>Sessions have moved to <a href="/schedule/">/schedule/</a>.</p>
