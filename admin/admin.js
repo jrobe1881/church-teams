@@ -445,7 +445,7 @@
 
   // ---- Caseloads ----
   function renderCaseloads(){
-    var teachers = state.members.filter(function(m){ return m.role === 'teacher' && m.status === 'active'; });
+    var teachers = state.members.filter(function(m){ return m.status === 'active' && m.active !== false && (m.role === 'teacher' || (m.role === 'church_admin' && m.also_teaches === true)); });
     var body = teachers.length
       ? teachers.map(function(t){ return '<div class="teams-row"><div><strong style="font-size:var(--t-sm)">' + esc(t.full_name) + '</strong></div></div>'; }).join('')
       : '<div class="teams-card-desc">No active teachers yet.</div>';

@@ -33,7 +33,7 @@
           '<span class="teams-empty-glyph" aria-hidden="true">\u2756</span>' +
           '<h2>Join a church first</h2>' +
           '<p>Your profile is per-church. Join or register a church to edit it.</p>' +
-          '<a class="teams-btn" href="/teams/">Go to Teams</a>' +
+          '<a class="teams-btn" href="/dashboard/">Go to Teams</a>' +
         '</div>';
       return;
     }
@@ -118,7 +118,7 @@
           '<div id="profErr" role="alert" aria-live="polite" style="margin-top:var(--s-2)"></div>' +
           '<div style="display:flex;gap:var(--s-2);margin-top:var(--s-4);flex-wrap:wrap">' +
             '<button id="profSaveBtn" class="teams-btn" type="submit">Save</button>' +
-            '<a class="teams-btn teams-btn-secondary" href="/teams/">Cancel</a>' +
+            '<a class="teams-btn teams-btn-secondary" href="/dashboard/">Cancel</a>' +
           '</div>' +
         '</form>' +
       '</section>' +
@@ -191,8 +191,8 @@
           return;
         }
         // Success — bounce to /teams/ which will now show the join-first landing.
-        try { window.safeLS && window.safeLS.removeItem && window.safeLS.removeItem('bst_active_church'); } catch(e){}
-        location.href = '/teams/';
+        try { (window.safeLS || localStorage).removeItem('teams_active_church_v1'); } catch(e){}
+        location.href = '/dashboard/';
       });
     });
   }

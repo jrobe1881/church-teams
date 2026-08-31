@@ -151,7 +151,7 @@
   function buildTabList(activeKey, opts){
     opts = opts || {};
     var tabs = [
-      { key:'dashboard', label:'Dashboard', glyph:'\u2756', href:'/' },
+      { key:'dashboard', label:'Dashboard', glyph:'\u2756', href:'/dashboard/' },
       { key:'students',  label:'Prospects', glyph:'\u25A4', href:'/students/' },
       { key:'schedule',  label:'Schedule',  glyph:'\u25F7', href:'/schedule/' },
       { key:'notices',   label:'Notices',   glyph:'\u25A3', href:'/notices/' },

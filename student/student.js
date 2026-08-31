@@ -379,7 +379,7 @@
     var churchId = student.church_id;
 
     var ov = document.createElement('div');
-    ov.className = 'teams-sheet-overlay';
+    ov.className = 'teams-overlay open';
     ov.innerHTML =
       '<div class="teams-sheet" role="dialog" aria-modal="true">' +
         '<button class="teams-sheet-close" type="button" aria-label="Close">\u2715</button>' +
