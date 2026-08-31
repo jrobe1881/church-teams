@@ -1,4 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="100" fill="#7a1f2b"/>
-  <text x="256" y="340" font-family="serif" font-size="320" text-anchor="middle" fill="#ffffff">❖</text>
+  <!-- Dark near-black background -->
+  <rect width="512" height="512" rx="96" fill="#141010"/>
+  <!-- 4 diamond cluster: 2x2 grid, each half-size=72, 16px gap, centered on 256,256 -->
+  <!-- Centers: TL=(184,184) TR=(328,184) BL=(184,328) BR=(328,328) -->
+  <!-- Top-left -->
+  <polygon points="184,112 256,184 184,256 112,184" fill="#b06070"/>
+  <!-- Top-right -->
+  <polygon points="328,112 400,184 328,256 256,184" fill="#b06070"/>
+  <!-- Bottom-left -->
+  <polygon points="184,256 256,328 184,400 112,328" fill="#b06070"/>
+  <!-- Bottom-right -->
+  <polygon points="328,256 400,328 328,400 256,328" fill="#b06070"/>
 </svg>
