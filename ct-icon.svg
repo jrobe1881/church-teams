@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <!-- Dark near-black background -->
   <rect width="512" height="512" rx="96" fill="#141010"/>
-  <!-- 4 diamond cluster: 2x2 grid, each half-size=72, 16px gap, centered on 256,256 -->
-  <!-- Centers: TL=(184,184) TR=(328,184) BL=(184,328) BR=(328,328) -->
-  <!-- Top-left -->
-  <polygon points="184,112 256,184 184,256 112,184" fill="#b06070"/>
-  <!-- Top-right -->
-  <polygon points="328,112 400,184 328,256 256,184" fill="#b06070"/>
-  <!-- Bottom-left -->
-  <polygon points="184,256 256,328 184,400 112,328" fill="#b06070"/>
-  <!-- Bottom-right -->
-  <polygon points="328,256 400,328 328,400 256,328" fill="#b06070"/>
+  <!-- 4 diamond compass layout scaled to 512x512 -->
+  <!-- Each half-size=64, gap=24 from center (256,256) -->
+  <!-- Top: center (256, 144) -->
+  <polygon points="256,80 320,144 256,208 192,144" fill="#b06070"/>
+  <!-- Right: center (368, 256) -->
+  <polygon points="368,192 432,256 368,320 304,256" fill="#b06070"/>
+  <!-- Bottom: center (256, 368) -->
+  <polygon points="256,304 320,368 256,432 192,368" fill="#b06070"/>
+  <!-- Left: center (144, 256) -->
+  <polygon points="144,192 208,256 144,320 80,256" fill="#b06070"/>
 </svg>

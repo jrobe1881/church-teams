@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
   <!-- Dark near-black background -->
   <rect width="32" height="32" rx="6" fill="#141010"/>
-  <!-- 4 diamond cluster: 2x2 grid, each diamond half-size=4.5, 1px gap, centered on 16,16 -->
-  <!-- Top-left: center (11.5, 11.5) -->
-  <polygon points="11.5,7 16,11.5 11.5,16 7,11.5" fill="#b06070"/>
-  <!-- Top-right: center (20.5, 11.5) -->
-  <polygon points="20.5,7 25,11.5 20.5,16 16,11.5" fill="#b06070"/>
-  <!-- Bottom-left: center (11.5, 20.5) -->
-  <polygon points="11.5,16 16,20.5 11.5,25 7,20.5" fill="#b06070"/>
-  <!-- Bottom-right: center (20.5, 20.5) -->
-  <polygon points="20.5,16 25,20.5 20.5,25 16,20.5" fill="#b06070"/>
+  <!-- 4 diamond compass layout, each half-size=4, 1.5px gap from center -->
+  <!-- Top: center (16, 9) -->
+  <polygon points="16,5 20,9 16,13 12,9" fill="#b06070"/>
+  <!-- Right: center (23, 16) -->
+  <polygon points="23,12 27,16 23,20 19,16" fill="#b06070"/>
+  <!-- Bottom: center (16, 23) -->
+  <polygon points="16,19 20,23 16,27 12,23" fill="#b06070"/>
+  <!-- Left: center (9, 16) -->
+  <polygon points="9,12 13,16 9,20 5,16" fill="#b06070"/>
 </svg>
