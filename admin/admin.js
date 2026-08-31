@@ -7,7 +7,11 @@
   var tabbarSlot = document.getElementById('teamsTabbarSlot');
   function esc(s){ return (window.TeamsCtx && window.TeamsCtx.esc) ? window.TeamsCtx.esc(s) : String(s == null ? '' : s); }
 
-  var state = { church: null, settings: null, churchSlots: [], members: [], teams: [], teamMembers: [], overdue: [], students: {} };
+  // adminStudents: all non-dropped students for this church (id, assigned_teacher_id, status)
+  var state = { church: null, settings: null, churchSlots: [], members: [], teams: [], teamMembers: [], overdue: [], students: {}, adminStudents: [] };
+
+  // ---- Members filter state (persists across sub-renders) ----
+  var memberFilter = { search: '', showDeactivated: false };
 
   function load(){
     var sb = window.TeamsCtx.sb;
@@ -19,7 +23,9 @@
       sb.from('bst_team_members').select('*'),
       sb.from('bst_followups').select('*').eq('church_id', churchId).eq('status', 'overdue').order('due_date', { ascending: true }),
       sb.from('bst_church_settings').select('*').eq('church_id', churchId).maybeSingle(),
-      sb.from('bst_church_service_slots').select('*').eq('church_id', churchId).order('sort_order', { ascending: true }).order('dow', { ascending: true }).order('service_time', { ascending: true })
+      sb.from('bst_church_service_slots').select('*').eq('church_id', churchId).order('sort_order', { ascending: true }).order('dow', { ascending: true }).order('service_time', { ascending: true }),
+      // Fix 1: load students for caseload counts
+      sb.from('bst_students').select('id,assigned_teacher_id,status').eq('church_id', churchId).neq('status', 'dropped')
     ]).then(function(results){
       state.church = results[0].data || null;
       state.members = results[1].error ? [] : (results[1].data || []);
@@ -28,6 +34,7 @@
       state.overdue = results[4].error ? [] : (results[4].data || []);
       state.settings = (results[5] && !results[5].error) ? (results[5].data || null) : null;
       state.churchSlots = (results[6] && !results[6].error) ? (results[6].data || []) : [];
+      state.adminStudents = (results[7] && !results[7].error) ? (results[7].data || []) : [];
       var ids = Array.from(new Set(state.overdue.map(function(f){ return f.student_id; }).filter(Boolean)));
       if (!ids.length) return;
       return sb.from('bst_students').select('id,full_name').in('id', ids).then(function(sres){
@@ -45,31 +52,52 @@
   // ---- Pending Approvals ----
   function renderPending(){
     var pending = state.members.filter(function(m){ return m.status === 'pending'; });
-    var body = pending.length
-      ? pending.map(function(m){
-          return '<div class="teams-row" data-pending-id="' + esc(m.id) + '">' +
-            '<div style="flex:1;min-width:0"><strong style="font-size:var(--t-sm)">' + esc(m.full_name || 'Unnamed') + '</strong>' +
-            '<div class="teams-card-desc">Requested ' + esc(new Date(m.created_at).toLocaleDateString()) + '</div></div>' +
-            '<div style="display:flex;gap:6px">' +
-              '<button class="teams-btn teams-btn-sm" data-approve="' + esc(m.id) + '" type="button">Approve</button>' +
-              '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-reject="' + esc(m.id) + '" type="button">Reject</button>' +
-            '</div>' +
-          '</div>';
-        }).join('')
-      : '<div class="teams-card-desc">No pending requests.</div>';
+    var body;
+    if (pending.length) {
+      // Feature 1: select-all checkbox + bulk action row
+      var rows = pending.map(function(m){
+        return '<div class="teams-row" data-pending-id="' + esc(m.id) + '" style="align-items:center;gap:var(--s-3)">' +
+          '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:none">' +
+            '<input type="checkbox" class="pending-cb" data-cbid="' + esc(m.id) + '" style="width:16px;height:16px" />' +
+          '</label>' +
+          '<div style="flex:1;min-width:0"><strong style="font-size:var(--t-sm)">' + esc(m.full_name || 'Unnamed') + '</strong>' +
+          '<div class="teams-card-desc">Requested ' + esc(new Date(m.created_at).toLocaleDateString()) + '</div></div>' +
+          '<div style="display:flex;gap:6px">' +
+            '<button class="teams-btn teams-btn-sm" data-approve="' + esc(m.id) + '" type="button">Approve</button>' +
+            '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-reject="' + esc(m.id) + '" type="button">Reject</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      body =
+        '<div style="display:flex;align-items:center;gap:var(--s-3);margin-bottom:var(--s-3);flex-wrap:wrap" id="pendingBulkBar">' +
+          '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:var(--t-sm)">' +
+            '<input type="checkbox" id="pendingSelectAll" style="width:16px;height:16px" /> Select all' +
+          '</label>' +
+          '<button class="teams-btn teams-btn-sm" id="bulkApproveBtn" type="button" style="display:none">Approve selected (<span id="bulkCount">0</span>)</button>' +
+          '<button class="teams-btn teams-btn-sm teams-btn-secondary" id="bulkRejectBtn" type="button" style="display:none">Reject selected</button>' +
+        '</div>' +
+        rows;
+    } else {
+      body = '<div class="teams-card-desc">No pending requests.</div>';
+    }
     return '<section class="teams-card" id="pending" style="margin-bottom:var(--s-5)"><h3 class="teams-card-label">Pending Approvals</h3>' + body + '</section>';
   }
 
+  // Fix 2: error toast uses red, success uses default token background
   function showAdminToast(msg, isError){
     var toast = document.createElement('div');
     toast.className = 'teams-toast show';
     toast.textContent = msg;
-    if (isError) toast.style.background = 'var(--accent)';
+    if (isError) {
+      toast.style.background = '#b91c1c';
+      toast.style.color = '#fff';
+    }
     document.body.appendChild(toast);
     setTimeout(function(){ toast.classList.remove('show'); setTimeout(function(){ toast.remove(); }, 300); }, 3500);
   }
 
   function wirePending(){
+    // Per-row approve/reject
     Array.prototype.forEach.call(root.querySelectorAll('[data-approve]'), function(btn){
       btn.addEventListener('click', function(){
         btn.disabled = true; btn.textContent = 'Approving\u2026';
@@ -88,6 +116,55 @@
         });
       });
     });
+
+    // Feature 1: bulk select logic
+    var selectAllCb = document.getElementById('pendingSelectAll');
+    var bulkApproveBtn = document.getElementById('bulkApproveBtn');
+    var bulkRejectBtn = document.getElementById('bulkRejectBtn');
+    var bulkCountEl = document.getElementById('bulkCount');
+
+    function updateBulkBar(){
+      var checked = root.querySelectorAll('.pending-cb:checked');
+      var n = checked.length;
+      var show = n > 0;
+      if (bulkApproveBtn) { bulkApproveBtn.style.display = show ? '' : 'none'; }
+      if (bulkRejectBtn)  { bulkRejectBtn.style.display  = show ? '' : 'none'; }
+      if (bulkCountEl)    { bulkCountEl.textContent = n; }
+    }
+
+    if (selectAllCb) {
+      selectAllCb.addEventListener('change', function(){
+        Array.prototype.forEach.call(root.querySelectorAll('.pending-cb'), function(cb){ cb.checked = selectAllCb.checked; });
+        updateBulkBar();
+      });
+    }
+    Array.prototype.forEach.call(root.querySelectorAll('.pending-cb'), function(cb){
+      cb.addEventListener('change', function(){
+        var all = root.querySelectorAll('.pending-cb');
+        var allChecked = Array.prototype.every.call(all, function(c){ return c.checked; });
+        if (selectAllCb) selectAllCb.checked = allChecked;
+        updateBulkBar();
+      });
+    });
+
+    function bulkAction(rpcName, actionLabel){
+      var checked = Array.prototype.slice.call(root.querySelectorAll('.pending-cb:checked'));
+      if (!checked.length) return;
+      var ids = checked.map(function(cb){ return cb.getAttribute('data-cbid'); });
+      if (bulkApproveBtn) { bulkApproveBtn.disabled = true; }
+      if (bulkRejectBtn)  { bulkRejectBtn.disabled  = true; }
+      var promises = ids.map(function(id){
+        return window.TeamsCtx.sb.rpc(rpcName, { p_member: id });
+      });
+      Promise.all(promises).then(function(results){
+        var errors = results.filter(function(r){ return r.error; });
+        if (errors.length) showAdminToast(errors.length + ' item(s) could not be ' + actionLabel + '.', true);
+        load().then(render);
+      });
+    }
+
+    if (bulkApproveBtn) bulkApproveBtn.addEventListener('click', function(){ bulkAction('bst_approve_pending_member', 'approved'); });
+    if (bulkRejectBtn)  bulkRejectBtn.addEventListener('click',  function(){ bulkAction('bst_reject_pending_member',  'rejected'); });
   }
 
   // ---- Church Settings ----
@@ -129,11 +206,30 @@
     // Count admins so we don't allow the last admin to demote themselves
     var adminCount = active.filter(function(m){ return m.role === 'church_admin' && m.active !== false; }).length;
     var myMemberId = (window.TeamsCtx.activeMember && window.TeamsCtx.activeMember.id) || null;
-    var body = active.length
-      ? active.map(function(m){
+
+    // Feature 4: filter controls
+    var searchHtml =
+      '<div style="display:flex;gap:var(--s-2);flex-wrap:wrap;margin-bottom:var(--s-3);align-items:center">' +
+        '<input type="search" id="memberSearch" placeholder="Search members\u2026" value="' + esc(memberFilter.search) + '" style="flex:1;min-width:180px;font-size:16px" />' +
+        '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:var(--t-sm);white-space:nowrap">' +
+          '<input type="checkbox" id="showDeactivated"' + (memberFilter.showDeactivated ? ' checked' : '') + ' /> Show deactivated' +
+        '</label>' +
+      '</div>';
+
+    // Feature 4: apply client-side filter
+    var q = memberFilter.search.toLowerCase();
+    var visible = active.filter(function(m){
+      if (!memberFilter.showDeactivated && m.active === false) return false;
+      if (q && (m.full_name || '').toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+
+    var body = visible.length
+      ? visible.map(function(m){
           var isMe = (m.id === myMemberId);
           var isAdmin = (m.role === 'church_admin');
           var canDemote = isAdmin && adminCount > 1;
+          var canRemove = !(isMe) && !(isAdmin && adminCount <= 1);
           var promoteBtn = isAdmin
             ? '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-set-role="teacher" data-mid="' + esc(m.id) + '" type="button"' + (canDemote ? '' : ' disabled title="Cannot demote the last remaining admin"') + '>Make teacher</button>'
             : '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-set-role="church_admin" data-mid="' + esc(m.id) + '" type="button">Make admin</button>';
@@ -142,12 +238,14 @@
           var alsoTeachesBtn = isAdmin
             ? '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-toggle-also-teaches="' + esc(m.id) + '" data-also="' + (m.also_teaches === true) + '" type="button">' + (m.also_teaches === true ? 'Remove teacher duties' : 'Also serve as teacher') + '</button>'
             : '';
+          // Feature 5: Remove button
+          var removeBtn = '<button class="teams-btn teams-btn-sm" data-remove-member="' + esc(m.id) + '" data-rname="' + esc(m.full_name || 'this member') + '" type="button" style="color:#b91c1c;border-color:#fca5a5;background:transparent"' + (!canRemove ? ' disabled title="' + (isMe ? 'Cannot remove yourself' : 'Cannot remove the last admin') + '"' : '') + '>Remove</button>';
           var roleLabel = m.role === 'church_admin'
             ? (m.also_teaches === true ? 'Church admin + teacher' : 'Church admin')
             : 'Teacher';
           var phoneVal = esc(m.phone || '');
           var emailVal = esc(m.email || '');
-          return '<div class="teams-row" style="flex-wrap:wrap;gap:var(--s-2);align-items:flex-start">' +
+          return '<div class="teams-row" data-member-row="' + esc(m.id) + '" style="flex-wrap:wrap;gap:var(--s-2);align-items:flex-start">' +
             '<div style="flex:1;min-width:200px">' +
               '<strong style="font-size:var(--t-sm)">' + esc(m.full_name || 'Unnamed') + (isMe ? ' <span class="teams-card-desc" style="display:inline">(you)</span>' : '') + '</strong>' +
               '<div class="teams-card-desc">' + esc(roleLabel) + (m.active === false ? ' \u00b7 Deactivated' : '') + '</div>' +
@@ -176,14 +274,76 @@
                 '</details>' +
               '</div>' +
             '</div>' +
-            '<div style="display:flex;gap:var(--s-2);flex-wrap:wrap">' + promoteBtn + alsoTeachesBtn + toggleBtn + '</div>' +
+            '<div style="display:flex;gap:var(--s-2);flex-wrap:wrap">' + promoteBtn + alsoTeachesBtn + toggleBtn + removeBtn + '</div>' +
           '</div>';
         }).join('')
-      : '<div class="teams-card-desc">No members yet.</div>';
-    return '<section class="teams-card" style="margin-bottom:var(--s-5)"><h3 class="teams-card-label">Teachers &amp; Members</h3>' + body + '</section>';
+      : '<div class="teams-card-desc">No members match your filter.</div>';
+
+    // Feature 2: Export CSV button in section header
+    var exportBtn = '<button class="teams-btn teams-btn-sm teams-btn-secondary" id="exportMembersBtn" type="button">Export CSV</button>';
+
+    return '<section class="teams-card" data-members-section style="margin-bottom:var(--s-5)">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);margin-bottom:var(--s-3)">' +
+        '<h3 class="teams-card-label" style="margin:0">Teachers &amp; Members</h3>' +
+        exportBtn +
+      '</div>' +
+      searchHtml +
+      body +
+    '</section>';
   }
 
   function wireMembers(){
+    // Feature 4: search and deactivated toggle
+    var searchEl = document.getElementById('memberSearch');
+    if (searchEl) {
+      searchEl.addEventListener('input', function(e){
+        memberFilter.search = e.target.value;
+        // Re-render only the members section in-place
+        var sec = root.querySelector('[data-members-section]');
+        if (sec) {
+          var tmp = document.createElement('div');
+          tmp.innerHTML = renderMembers();
+          var newSec = tmp.querySelector('[data-members-section]');
+          if (newSec) { sec.parentNode.replaceChild(newSec, sec); wireMembers(); return; }
+        }
+        // fallback: full re-render of just this section
+        rerenderMembersSection();
+      });
+    }
+    var showDeactCb = document.getElementById('showDeactivated');
+    if (showDeactCb) {
+      showDeactCb.addEventListener('change', function(){
+        memberFilter.showDeactivated = showDeactCb.checked;
+        rerenderMembersSection();
+      });
+    }
+
+    // Feature 2: Export CSV
+    var exportBtn = document.getElementById('exportMembersBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function(){
+        var active = state.members.filter(function(m){ return m.status !== 'pending'; });
+        var rows = [['Full Name','Role','Status','Phone','Email','Also Teaches']];
+        active.forEach(function(m){
+          rows.push([
+            m.full_name || '',
+            m.role === 'church_admin' ? 'Church Admin' : 'Teacher',
+            m.active === false ? 'Deactivated' : 'Active',
+            m.phone || '',
+            m.email || '',
+            m.role === 'church_admin' ? (m.also_teaches ? 'Yes' : 'No') : ''
+          ]);
+        });
+        var csv = rows.map(function(r){ return r.map(function(cell){ return '"' + String(cell).replace(/"/g,'""') + '"'; }).join(','); }).join('\r\n');
+        var blob = new Blob([csv], { type: 'text/csv' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = 'members.csv';
+        document.body.appendChild(a); a.click();
+        setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+      });
+    }
+
     Array.prototype.forEach.call(root.querySelectorAll('[data-toggle-active]'), function(btn){
       btn.addEventListener('click', function(){
         var id = btn.getAttribute('data-toggle-active');
@@ -201,7 +361,6 @@
         var role = btn.getAttribute('data-set-role');
         var label = (role === 'church_admin' ? 'promote to church admin' : 'change to teacher');
         // Inline confirm: replace the button temporarily
-        var row = btn.closest('.teams-row');
         var placeholder = document.createElement('div');
         placeholder.style.cssText = 'display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap';
         placeholder.innerHTML =
@@ -287,6 +446,49 @@
         });
       });
     });
+
+    // Feature 5: Remove member
+    Array.prototype.forEach.call(root.querySelectorAll('[data-remove-member]'), function(btn){
+      btn.addEventListener('click', function(){
+        if (btn.disabled) return;
+        var id = btn.getAttribute('data-remove-member');
+        var name = btn.getAttribute('data-rname') || 'this member';
+        // Two-step inline confirm: replace button group
+        var btnGroup = btn.parentNode;
+        var origHtml = btnGroup.innerHTML;
+        btnGroup.innerHTML =
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+            '<span style="font-size:var(--t-xs);color:var(--ink-2)">Remove &ldquo;' + esc(name) + '&rdquo;? This cannot be undone.</span>' +
+            '<button class="teams-btn teams-btn-sm" data-confirm-remove style="background:#b91c1c;border-color:#b91c1c;color:#fff" type="button">Yes, remove</button>' +
+            '<button class="teams-btn teams-btn-sm teams-btn-secondary" data-cancel-remove type="button">Cancel</button>' +
+          '</div>';
+        btnGroup.querySelector('[data-cancel-remove]').addEventListener('click', function(){ btnGroup.innerHTML = origHtml; wireMembers(); });
+        btnGroup.querySelector('[data-confirm-remove]').addEventListener('click', function(){
+          var confirmBtn = btnGroup.querySelector('[data-confirm-remove]');
+          confirmBtn.disabled = true; confirmBtn.textContent = 'Removing\u2026';
+          var sb = window.TeamsCtx.sb;
+          // Clean up team memberships first, then delete the member row
+          sb.from('bst_team_members').delete().eq('member_id', id).then(function(res){
+            if (res.error) { showAdminToast('Could not remove team assignments: ' + res.error.message, true); btnGroup.innerHTML = origHtml; wireMembers(); return; }
+            sb.from('bst_members').delete().eq('id', id).then(function(res2){
+              if (res2.error) { showAdminToast('Could not remove member: ' + res2.error.message, true); btnGroup.innerHTML = origHtml; wireMembers(); return; }
+              showAdminToast(esc(name) + ' has been removed.', false);
+              load().then(render);
+            });
+          });
+        });
+      });
+    });
+  }
+
+  // Helper: re-render just the members section without destroying the rest of the page
+  function rerenderMembersSection(){
+    var oldSec = root.querySelector('[data-members-section]');
+    if (!oldSec) { load().then(render); return; }
+    var tmp = document.createElement('div');
+    tmp.innerHTML = renderMembers();
+    var newSec = tmp.firstElementChild;
+    if (newSec) { oldSec.parentNode.replaceChild(newSec, oldSec); wireMembers(); }
   }
 
   // ---- Teams ----
@@ -334,7 +536,6 @@
         var team = state.teams.filter(function(t){ return t.id === id; })[0];
         var name = (team && team.name) || 'this team';
         // Inline confirm: replace the button group temporarily
-        var row = btn.closest('.teams-row');
         var btnGroup = btn.parentNode;
         var origHtml = btnGroup.innerHTML;
         btnGroup.innerHTML =
@@ -443,12 +644,42 @@
     });
   }
 
-  // ---- Caseloads ----
+  // ---- Caseloads (Feature 3: real student counts + status chips + roster link) ----
+  var CASELOAD_STATUS_LABELS = {
+    new_intake: 'New Intake', prospect: 'Prospect', cultivating: 'Cultivating', active: 'Active', paused: 'Paused'
+  };
+  var CASELOAD_STATUS_ORDER = ['new_intake', 'prospect', 'cultivating', 'active', 'paused'];
+
   function renderCaseloads(){
-    var teachers = state.members.filter(function(m){ return m.status === 'active' && m.active !== false && (m.role === 'teacher' || (m.role === 'church_admin' && m.also_teaches === true)); });
+    var teachers = state.members.filter(function(m){
+      return m.status === 'active' && m.active !== false && (m.role === 'teacher' || (m.role === 'church_admin' && m.also_teaches === true));
+    });
+
     var body = teachers.length
-      ? teachers.map(function(t){ return '<div class="teams-row"><div><strong style="font-size:var(--t-sm)">' + esc(t.full_name) + '</strong></div></div>'; }).join('')
+      ? teachers.map(function(t){
+          // Count students per status for this teacher
+          var mine = state.adminStudents.filter(function(s){ return s.assigned_teacher_id === t.id; });
+          var total = mine.length;
+
+          // Build status breakdown chips (only non-zero statuses)
+          var chipHtml = '';
+          CASELOAD_STATUS_ORDER.forEach(function(sk){
+            var cnt = mine.filter(function(s){ return s.status === sk; }).length;
+            if (!cnt) return;
+            chipHtml += '<span class="teams-chip is-neutral" style="font-size:var(--t-xs)">' + esc(CASELOAD_STATUS_LABELS[sk]) + ': ' + cnt + '</span>';
+          });
+
+          return '<div class="teams-row" style="flex-wrap:wrap;gap:var(--s-2);align-items:flex-start">' +
+            '<div style="flex:1;min-width:0">' +
+              '<strong style="font-size:var(--t-sm)">' + esc(t.full_name) + '</strong>' +
+              '<div class="teams-card-desc" style="margin-top:2px">' + total + ' prospect' + (total === 1 ? '' : 's') + ' assigned</div>' +
+              (chipHtml ? '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">' + chipHtml + '</div>' : '') +
+            '</div>' +
+            '<a class="teams-btn teams-btn-sm teams-btn-secondary" href="/students/?teacher=' + esc(t.id) + '" style="align-self:center">View roster \u203a</a>' +
+          '</div>';
+        }).join('')
       : '<div class="teams-card-desc">No active teachers yet.</div>';
+
     return '<section class="teams-card" style="margin-bottom:var(--s-5)"><h3 class="teams-card-label">Caseloads</h3>' + body + '</section>';
   }
 
@@ -545,8 +776,12 @@
         sb.from('bst_church_settings').upsert(payload, { onConflict: 'church_id' }).then(function(res){
           cultBtn.disabled = false; cultBtn.textContent = 'Save cultivation';
           if (res.error) { errEl.innerHTML = '<div class="teams-error">' + esc(res.error.message || 'Could not save.') + '</div>'; return; }
+          // Fix 3: update state in-place — do NOT call render() so church-service slot edits are preserved
+          if (!state.settings) state.settings = {};
+          state.settings.cultivation_dow  = payload.cultivation_dow;
+          state.settings.cultivation_time = payload.cultivation_time;
           okEl.textContent = 'Saved.';
-          load().then(render);
+          setTimeout(function(){ okEl.textContent = ''; }, 3000);
         });
       });
     }
